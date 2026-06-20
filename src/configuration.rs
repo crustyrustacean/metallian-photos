@@ -7,6 +7,7 @@ use std::convert::{TryFrom, TryInto};
 #[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub application: ApplicationSettings,
+    pub database: DatabaseSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -15,6 +16,11 @@ pub struct ApplicationSettings {
     pub port: u16,
     pub host: String,
     pub base_url: String,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct DatabaseSettings {
+    pub path: String,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

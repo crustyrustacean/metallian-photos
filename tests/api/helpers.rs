@@ -33,6 +33,7 @@ pub async fn spawn_app() -> TestApp {
         let mut c = get_configuration().expect("Failed to read configuration.");
 
         c.application.port = 0;
+        c.database.path = ":memory:".to_string();
 
         c
     };
