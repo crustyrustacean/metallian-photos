@@ -3,3 +3,9 @@ application:
   host: 0.0.0.0
 database:
   path: "r2_photo_api.db"
+storage:
+  fs_root: "./uploads"
+  r2_bucket: ""
+  r2_endpoint: ""
+  r2_access_key: ""
+  r2_secret_key: ""
