@@ -4,7 +4,7 @@ application:
 database:
   path: "r2_photo_api.db"
 storage:
-  fs_root: "./uploads"
+  fs_root: "."
   r2_bucket: ""
   r2_endpoint: ""
   r2_access_key: ""
