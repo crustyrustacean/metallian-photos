@@ -1,6 +1,7 @@
 // src/configuration.rs
 
 // dependencies
+use secrecy::SecretString;
 use serde_aux::field_attributes::deserialize_number_from_string;
 use std::convert::{TryFrom, TryInto};
 
@@ -8,6 +9,7 @@ use std::convert::{TryFrom, TryInto};
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
+    pub storage: StorageSettings,
 }
 
 #[derive(serde::Deserialize, Clone)]
@@ -21,6 +23,15 @@ pub struct ApplicationSettings {
 #[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub path: String,
+}
+
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct StorageSettings {
+    pub fs_root: String,
+    pub r2_bucket: String,
+    pub r2_endpoint: String,
+    pub r2_access_key: SecretString,
+    pub r2_secret_key: SecretString,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
