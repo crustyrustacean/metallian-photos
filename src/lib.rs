@@ -2,6 +2,9 @@
 
 // module declarations
 pub mod configuration;
+pub mod database;
+pub mod domain;
+pub mod exif;
 pub mod error;
 pub mod response;
 pub mod routes;
