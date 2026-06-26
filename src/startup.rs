@@ -1,15 +1,13 @@
 // src/startup.rs
 
 // dependencies
-use crate::configuration::{DatabaseSettings, Settings};
+use crate::configuration::Settings;
 use crate::routes::health_check;
 use crate::storage::{OpendalStorageBackend, StorageBackend};
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
-use sqlx::SqlitePool;
-use sqlx::sqlite::SqliteConnectOptions;
+
 use std::net::TcpListener;
-use std::str::FromStr;
 use tracing_actix_web::TracingLogger;
 
 pub struct Application {
@@ -45,16 +43,6 @@ impl Application {
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
         self.server.await
     }
-}
-
-async fn create_database_pool(
-    db_configuration: DatabaseSettings,
-) -> Result<SqlitePool, anyhow::Error> {
-    let db_path = format!("sqlite:{}", db_configuration.path);
-    let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(true);
-    let pool = SqlitePool::connect_with(options).await?;
-
-    Ok(pool)
 }
 
 pub struct ApplicationBaseUrl(pub String);
