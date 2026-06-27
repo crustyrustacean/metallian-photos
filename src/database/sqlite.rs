@@ -51,6 +51,11 @@ impl SqliteRepository {
         let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(true);
         let pool = SqlitePool::connect_with(options).await?;
 
+        sqlx::migrate!("./migrations")
+            .run(&pool)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to run database migrations: {}", e))?;
+
         Ok(Self { pool })
     }
 }
