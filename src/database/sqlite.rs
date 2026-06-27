@@ -2,12 +2,43 @@
 
 use crate::configuration::DatabaseSettings;
 use crate::database::{DatabaseBackend, DatabaseError};
-use crate::domain::Photo;
+use crate::domain::{Exif, Photo};
 use async_trait::async_trait;
-use sqlx::SqlitePool;
 use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::{FromRow, SqlitePool};
 use std::str::FromStr;
 use uuid::Uuid;
+
+#[derive(Debug, FromRow)]
+struct PhotoRow {
+    pub id: Uuid,
+    pub band: String,
+    pub tour: String,
+    pub venue: String,
+    pub date_time_original: Option<String>,
+    pub make: Option<String>,
+    pub model: Option<String>,
+    pub lens_make: Option<String>,
+    pub lens_model: Option<String>,
+}
+
+impl From<PhotoRow> for Photo {
+    fn from(row: PhotoRow) -> Self {
+        Photo {
+            id: row.id,
+            band: row.band,
+            tour: row.tour,
+            venue: row.venue,
+            exif_data: Exif {
+                date_time_original: row.date_time_original,
+                make: row.make,
+                model: row.model,
+                lens_make: row.lens_make,
+                lens_model: row.lens_model,
+            },
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct SqliteRepository {
@@ -48,13 +79,16 @@ impl DatabaseBackend for SqliteRepository {
     }
 
     async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError> {
-        let result: Photo = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
+        let result: PhotoRow = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
             .bind(id)
             .fetch_one(&self.pool)
             .await
-            .map_err(|e| DatabaseError::NotFound(e.to_string()))?;
+            .map_err(|e| match e {
+                sqlx::Error::RowNotFound => DatabaseError::NotFound(id.to_string()),
+                _ => DatabaseError::Operation(e.into()),
+            })?;
 
-        Ok(result)
+        Ok(result.into())
     }
 
     async fn update(&self, photo: Photo) -> Result<(), DatabaseError> {

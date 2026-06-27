@@ -1,19 +1,17 @@
 // src/domain/photo.rs
 
-use sqlx::FromRow;
 use uuid::Uuid;
 
-#[derive(Debug, FromRow)]
+#[derive(Debug)]
 pub struct Photo {
     pub id: Uuid,
     pub band: String,
     pub tour: String,
     pub venue: String,
-    #[sqlx(flatten)]
     pub exif_data: Exif,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug)]
 pub struct Exif {
     pub date_time_original: Option<String>,
     pub make: Option<String>,
