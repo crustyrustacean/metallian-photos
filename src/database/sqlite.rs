@@ -4,7 +4,7 @@ use crate::configuration::DatabaseSettings;
 use crate::database::{DatabaseBackend, DatabaseError};
 use crate::domain::{Exif, Photo};
 use async_trait::async_trait;
-use sqlx::sqlite::SqliteConnectOptions;
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::{FromRow, SqlitePool};
 use std::str::FromStr;
 use uuid::Uuid;
@@ -46,10 +46,14 @@ pub struct SqliteRepository {
 }
 
 impl SqliteRepository {
-    pub async fn new(db_configuration: DatabaseSettings) -> Result<Self, anyhow::Error> {
+    pub async fn new(db_configuration: &DatabaseSettings) -> Result<Self, anyhow::Error> {
         let db_path = format!("sqlite:{}", db_configuration.path);
+        let mut pool_opts = SqlitePoolOptions::new();
+        if let Some(max) = db_configuration.max_connections {
+            pool_opts = pool_opts.max_connections(max);
+        }
         let options = SqliteConnectOptions::from_str(&db_path)?.create_if_missing(true);
-        let pool = SqlitePool::connect_with(options).await?;
+        let pool = pool_opts.connect_with(options).await?;
 
         sqlx::migrate!("./migrations")
             .run(&pool)

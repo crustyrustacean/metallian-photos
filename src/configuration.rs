@@ -23,6 +23,8 @@ pub struct ApplicationSettings {
 #[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub path: String,
+    #[serde(default)]
+    pub max_connections: Option<u32>,
 }
 
 #[derive(serde::Deserialize, Clone, Debug)]

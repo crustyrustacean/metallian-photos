@@ -2,9 +2,9 @@
 
 // dependencies
 use crate::configuration::Settings;
-use crate::database::{DatabaseBackend, SqliteRepository};
+use crate::database::DatabaseBackend;
 use crate::routes::health_check;
-use crate::storage::{OpendalStorageBackend, StorageBackend};
+use crate::storage::StorageBackend;
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
 
@@ -17,22 +17,23 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
+    pub async fn build(
+        configuration: Settings,
+        database_backend: Box<dyn DatabaseBackend>,
+        storage_backend: Box<dyn StorageBackend>,
+    ) -> Result<Self, anyhow::Error> {
         let address = format!(
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
-        let database_repository: Box<dyn DatabaseBackend> =
-            Box::new(SqliteRepository::new(configuration.database).await?);
-        let storage_backend: Box<dyn StorageBackend> =
-            Box::new(OpendalStorageBackend::new(configuration.storage)?);
+
         let listener = TcpListener::bind(address)?;
         let port = listener.local_addr()?.port();
         let server = run(
             listener,
-            database_repository,
+            database_backend,
             storage_backend,
-            configuration.application.base_url,
+            configuration.application.base_url.clone(),
         )
         .await?;
         Ok(Self { port, server })

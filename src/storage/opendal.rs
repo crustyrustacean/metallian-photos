@@ -15,7 +15,7 @@ pub struct OpendalStorageBackend {
 }
 
 impl OpendalStorageBackend {
-    pub fn new(config: StorageSettings) -> Result<Self> {
+    pub fn new(config: &StorageSettings) -> Result<Self> {
         let builder = S3::default()
             .root(&config.fs_root)
             .bucket(&config.r2_bucket)
