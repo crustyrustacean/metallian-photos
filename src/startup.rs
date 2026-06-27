@@ -2,6 +2,7 @@
 
 // dependencies
 use crate::configuration::Settings;
+use crate::database::{DatabaseBackend, SqliteRepository};
 use crate::routes::health_check;
 use crate::storage::{OpendalStorageBackend, StorageBackend};
 use actix_web::dev::Server;
@@ -21,14 +22,15 @@ impl Application {
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
-        let db_pool = create_database_pool(configuration.database).await?;
+        let database_repository: Box<dyn DatabaseBackend> =
+            Box::new(SqliteRepository::new(configuration.database).await?);
         let storage_backend: Box<dyn StorageBackend> =
             Box::new(OpendalStorageBackend::new(configuration.storage)?);
         let listener = TcpListener::bind(address)?;
         let port = listener.local_addr()?.port();
         let server = run(
             listener,
-            db_pool,
+            database_repository,
             storage_backend,
             configuration.application.base_url,
         )
@@ -49,19 +51,19 @@ pub struct ApplicationBaseUrl(pub String);
 
 async fn run(
     listener: TcpListener,
-    pool: SqlitePool,
+    database: Box<dyn DatabaseBackend>,
     storage: Box<dyn StorageBackend>,
     base_url: String,
 ) -> Result<Server, anyhow::Error> {
     let base_url = Data::new(ApplicationBaseUrl(base_url));
-    let db_pool = Data::new(pool);
+    let database_repository = Data::new(database);
     let storage_backend = Data::new(storage);
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .app_data(base_url.clone())
-            .app_data(db_pool.clone())
+            .app_data(database_repository.clone())
             .app_data(storage_backend.clone())
     })
     .listen(listener)?
