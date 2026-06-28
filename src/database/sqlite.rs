@@ -62,6 +62,10 @@ impl SqliteRepository {
 
         Ok(Self { pool })
     }
+
+    pub fn pool(&self) -> &SqlitePool {
+        &self.pool
+    }
 }
 
 #[async_trait]

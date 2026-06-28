@@ -1,5 +1,6 @@
 // src/lib/errors.rs
 
+use crate::database::DatabaseError;
 // dependencies
 use crate::response::ApiResponse;
 use actix_web::http::{StatusCode, header::ContentType};
@@ -41,6 +42,15 @@ impl ResponseError for ApiError {
 impl std::fmt::Debug for ApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         error_chain_fmt(self, f)
+    }
+}
+
+impl From<DatabaseError> for ApiError {
+    fn from(e: DatabaseError) -> Self {
+        match e {
+            DatabaseError::NotFound(err) => ApiError::NotFound(err),
+            DatabaseError::Operation(err) => ApiError::Internal(err.to_string()),
+        }
     }
 }
 
