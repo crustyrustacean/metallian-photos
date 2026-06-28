@@ -1,4 +1,4 @@
-// src/lib/errors.rs
+// src/error.rs
 
 use crate::database::DatabaseError;
 // dependencies

@@ -1,4 +1,4 @@
-// src/routes/health_check.rs
+// src/routes/health.rs
 
 // dependencies
 use crate::response::ApiResponse;

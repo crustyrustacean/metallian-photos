@@ -27,8 +27,8 @@ pub async fn create(
     let photo = Photo {
         id,
         band: form_data.band,
-        tour: form_data.tour.clone(),
-        venue: form_data.venue.clone(),
+        tour: form_data.tour,
+        venue: form_data.venue,
         exif_data: Exif {
             date_time_original: None,
             make: None,
