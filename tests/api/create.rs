@@ -2,7 +2,7 @@
 
 // dependencies
 use crate::helpers::spawn_app;
-use r2_photo_api::response::ApiResponse;
+use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -45,20 +45,18 @@ async fn create_photo_endpoint_returns_200_ok_and_id() {
     // Assert
     assert!(response.status().is_success());
 
-    let body: ApiResponse<Uuid> = response
-        .json()
+    let body = response
+        .text()
         .await
-        .expect("Failed to deserialize response.");
-
-    let id = body.data.unwrap();
+        .expect("Unable to obtain response body.");
 
     let result: StoredPhotoData = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
-        .bind(id)
+        .bind(&body)
         .fetch_one(&*app.database.pool())
         .await
         .unwrap();
 
-    assert_eq!(result.id, id);
+    assert_eq!(result.id.to_string(), body);
     assert_eq!(result.band, photo_data.band);
     assert_eq!(result.tour, photo_data.tour);
     assert_eq!(result.venue, photo_data.venue);

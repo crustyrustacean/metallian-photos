@@ -2,9 +2,10 @@
 
 use crate::storage::StorageBackend;
 // dependencies
+use crate::database::DatabaseBackend;
 use crate::domain::{Exif, Photo};
-use crate::response::ApiResponse;
-use crate::{database::DatabaseBackend, error::ApiError};
+use crate::utils::e500;
+use actix_web::HttpResponse;
 use actix_web::web::{Data, Form};
 use serde::Deserialize;
 use uuid::Uuid;
@@ -21,7 +22,7 @@ pub async fn create(
     form: Form<FormData>,
     database: Data<Box<dyn DatabaseBackend>>,
     _storage: Data<Box<dyn StorageBackend>>,
-) -> Result<ApiResponse<Uuid>, ApiError> {
+) -> Result<HttpResponse, actix_web::Error> {
     let id = Uuid::new_v4();
     let Form(form_data) = form;
     let photo = Photo {
@@ -38,7 +39,7 @@ pub async fn create(
         },
     };
 
-    database.create(photo).await?;
+    database.create(photo).await.map_err(e500)?;
 
-    Ok(ApiResponse::success(id))
+    Ok(HttpResponse::Ok().body(id.to_string()))
 }
