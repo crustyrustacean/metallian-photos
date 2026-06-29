@@ -71,7 +71,7 @@ impl SqliteRepository {
         sqlx::migrate!("./migrations")
             .run(&pool)
             .await
-            .map_err(|e| anyhow::anyhow!("Failed to run database migrations: {}", e))?;
+            .context("Failed to run the database migrations.")?;
 
         Ok(Self { pool })
     }
@@ -99,7 +99,7 @@ impl DatabaseBackend for SqliteRepository {
         .bind(photo.exif_data.lens_model)
         .execute(&self.pool)
         .await
-        .context("Failed to create the photo in the database.")?;
+        .context("Failed to create the photo.")?;
 
         Ok(photo.id)
     }
@@ -109,7 +109,7 @@ impl DatabaseBackend for SqliteRepository {
             .bind(id_as_text(id))
             .fetch_optional(&self.pool)
             .await
-            .context("Failed to fetch the photo from the database.")?;
+            .context("Failed to fetch the photo.")?;
         let row = row.ok_or_else(|| DatabaseError::NotFound(id.to_string()))?;
 
         Ok(row.into())
@@ -130,7 +130,7 @@ impl DatabaseBackend for SqliteRepository {
         .bind(id_as_text(photo.id))
         .execute(&self.pool)
         .await
-        .context("Failed to update the photo in the database.")?;
+        .context("Failed to update the photo.")?;
 
         Ok(())
     }
@@ -140,7 +140,7 @@ impl DatabaseBackend for SqliteRepository {
             .bind(id_as_text(id))
             .execute(&self.pool)
             .await
-            .context("Failed to delete the photo from the database.")?;
+            .context("Failed to delete the photo.")?;
 
         Ok(())
     }

@@ -3,7 +3,7 @@
 // dependencies
 use crate::configuration::Settings;
 use crate::database::DatabaseBackend;
-use crate::routes::{create, health_check};
+use crate::routes::{create, delete, health_check};
 use crate::storage::StorageBackend;
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
@@ -64,6 +64,7 @@ async fn run(
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/photos", web::post().to(create))
+            .route("/photos/{id}", web::delete().to(delete))
             .app_data(base_url.clone())
             .app_data(database_repository.clone())
             .app_data(storage_backend.clone())

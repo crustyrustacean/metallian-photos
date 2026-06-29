@@ -1,5 +1,5 @@
 // tests/api
 
-mod create;
+mod database;
 mod health;
 mod helpers;
