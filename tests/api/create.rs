@@ -2,7 +2,6 @@
 
 // dependencies
 use crate::helpers::spawn_app;
-use actix_web::HttpResponse;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -16,7 +15,7 @@ struct PhotoData {
 
 #[derive(FromRow)]
 struct StoredPhotoData {
-    id: Uuid,
+    id: String,
     band: String,
     tour: String,
     venue: String,
@@ -45,18 +44,21 @@ async fn create_photo_endpoint_returns_200_ok_and_id() {
     // Assert
     assert!(response.status().is_success());
 
-    let body = response
-        .text()
+    let id: Uuid = response
+        .json()
         .await
         .expect("Unable to obtain response body.");
 
+    let id_string = id.to_string();
+    let db_pool = app.database.pool();
+
     let result: StoredPhotoData = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
-        .bind(&body)
-        .fetch_one(&*app.database.pool())
+        .bind(&id_string)
+        .fetch_one(db_pool)
         .await
         .unwrap();
 
-    assert_eq!(result.id.to_string(), body);
+    assert_eq!(result.id, id_string);
     assert_eq!(result.band, photo_data.band);
     assert_eq!(result.tour, photo_data.tour);
     assert_eq!(result.venue, photo_data.venue);

@@ -8,10 +8,22 @@ use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::{FromRow, SqlitePool};
 use std::str::FromStr;
 use uuid::Uuid;
+use uuid::fmt::Hyphenated;
+
+// `photos.id` is declared `TEXT PRIMARY KEY` in the schema, so the SQLite
+// layer stores the UUID as its canonical hyphenated string form. sqlx encodes
+// `Uuid` itself as a 16-byte BLOB on SQLite, which would never compare equal
+// to a TEXT value; using `Hyphenated` keeps the on-disk representation
+// human-readable *and* consistent with the string the API exposes.
+//
+// Bind a `Uuid` as hyphenated text so it matches the stored column type.
+fn id_as_text(id: Uuid) -> Hyphenated {
+    id.hyphenated()
+}
 
 #[derive(Debug, FromRow)]
 struct PhotoRow {
-    pub id: Uuid,
+    pub id: Hyphenated,
     pub band: String,
     pub tour: String,
     pub venue: String,
@@ -25,7 +37,7 @@ struct PhotoRow {
 impl From<PhotoRow> for Photo {
     fn from(row: PhotoRow) -> Self {
         Photo {
-            id: row.id,
+            id: row.id.into_uuid(),
             band: row.band,
             tour: row.tour,
             venue: row.venue,
@@ -75,7 +87,7 @@ impl DatabaseBackend for SqliteRepository {
             "INSERT INTO photos (id, band, tour, venue, date_time_original, make, model, lens_make, lens_model)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
-        .bind(photo.id)
+        .bind(id_as_text(photo.id))
         .bind(photo.band)
         .bind(photo.tour)
         .bind(photo.venue)
@@ -93,7 +105,7 @@ impl DatabaseBackend for SqliteRepository {
 
     async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError> {
         let result: PhotoRow = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
-            .bind(id)
+            .bind(id_as_text(id))
             .fetch_one(&self.pool)
             .await
             .map_err(|e| match e {
@@ -116,7 +128,7 @@ impl DatabaseBackend for SqliteRepository {
         .bind(photo.exif_data.model)
         .bind(photo.exif_data.lens_make)
         .bind(photo.exif_data.lens_model)
-        .bind(photo.id)
+        .bind(id_as_text(photo.id))
         .execute(&self.pool)
         .await
         .map_err(|e| DatabaseError::Operation(e.into()))?;
@@ -126,7 +138,7 @@ impl DatabaseBackend for SqliteRepository {
 
     async fn delete(&self, id: Uuid) -> Result<(), DatabaseError> {
         sqlx::query("DELETE FROM photos WHERE id = ?")
-            .bind(id)
+            .bind(id_as_text(id))
             .execute(&self.pool)
             .await
             .map_err(|e| DatabaseError::Operation(e.into()))?;

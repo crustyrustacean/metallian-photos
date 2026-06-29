@@ -40,6 +40,6 @@ pub async fn create(
     };
 
     database.create(photo).await.map_err(e500)?;
-
-    Ok(HttpResponse::Ok().body(id.to_string()))
+    
+    Ok(HttpResponse::Ok().json(id))
 }
