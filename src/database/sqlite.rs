@@ -3,6 +3,7 @@
 use crate::configuration::DatabaseSettings;
 use crate::database::{DatabaseBackend, DatabaseError};
 use crate::domain::{Exif, Photo};
+use anyhow::Context;
 use async_trait::async_trait;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::{FromRow, SqlitePool};
@@ -98,22 +99,20 @@ impl DatabaseBackend for SqliteRepository {
         .bind(photo.exif_data.lens_model)
         .execute(&self.pool)
         .await
-        .map_err(|e| DatabaseError::Operation(e.into()))?;
+        .context("Failed to create the photo in the database.")?;
 
         Ok(photo.id)
     }
 
     async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError> {
-        let result: PhotoRow = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
+        let row: Option<PhotoRow> = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
             .bind(id_as_text(id))
-            .fetch_one(&self.pool)
+            .fetch_optional(&self.pool)
             .await
-            .map_err(|e| match e {
-                sqlx::Error::RowNotFound => DatabaseError::NotFound(id.to_string()),
-                _ => DatabaseError::Operation(e.into()),
-            })?;
+            .context("Failed to fetch the photo from the database.")?;
+        let row = row.ok_or_else(|| DatabaseError::NotFound(id.to_string()))?;
 
-        Ok(result.into())
+        Ok(row.into())
     }
 
     async fn update(&self, photo: Photo) -> Result<(), DatabaseError> {
@@ -131,7 +130,7 @@ impl DatabaseBackend for SqliteRepository {
         .bind(id_as_text(photo.id))
         .execute(&self.pool)
         .await
-        .map_err(|e| DatabaseError::Operation(e.into()))?;
+        .context("Failed to update the photo in the database.")?;
 
         Ok(())
     }
@@ -141,7 +140,7 @@ impl DatabaseBackend for SqliteRepository {
             .bind(id_as_text(id))
             .execute(&self.pool)
             .await
-            .map_err(|e| DatabaseError::Operation(e.into()))?;
+            .context("Failed to delete the photo from the database.")?;
 
         Ok(())
     }

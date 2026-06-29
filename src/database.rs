@@ -1,6 +1,7 @@
 // src/database.rs
 
 use crate::domain::Photo;
+use crate::utils::error_chain_fmt;
 use async_trait::async_trait;
 use thiserror::Error;
 use uuid::Uuid;
@@ -9,13 +10,19 @@ pub mod sqlite;
 
 pub use sqlite::*;
 
-#[derive(Debug, Error)]
+#[derive(Error)]
 pub enum DatabaseError {
     #[error("record not found: {0}")]
     NotFound(String),
 
-    #[error("database operation failed: {0}")]
-    Operation(#[from] Box<dyn std::error::Error + Send + Sync>),
+    #[error(transparent)]
+    Operation(#[from] anyhow::Error),
+}
+
+impl std::fmt::Debug for DatabaseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
 }
 
 #[async_trait]
