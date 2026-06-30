@@ -1,4 +1,4 @@
-// tests/api/delete.rs
+// tests/api/read.rs
 
 // dependencies
 use crate::helpers::spawn_app;
@@ -12,8 +12,16 @@ struct PhotoData {
     venue: String,
 }
 
+#[derive(Deserialize)]
+struct StoredPhotoData {
+    id: String,
+    band: String,
+    tour: String,
+    venue: String,
+}
+
 #[tokio::test]
-async fn delete_photo_endpoint_returns_204_no_content() {
+async fn read_photo_endpoint_returns_200_ok_and_a_single_photo() {
     // Arrange
     let app = spawn_app().await;
     let client = reqwest::Client::new();
@@ -41,11 +49,18 @@ async fn delete_photo_endpoint_returns_204_no_content() {
         .expect("Unable to obtain response body.");
 
     let response = client
-        .delete(&format!("{}/photos/{}", &app.address, id.to_string()))
+        .get(&format!("{}/photos/{}", &app.address, id))
         .send()
         .await
-        .expect("Failed to execute request.");
+        .expect("Failed to execute request");
 
-    assert_eq!(response.status().as_u16(), 204);
-    assert_eq!(Some(0), response.content_length());
+    let stored_photo: StoredPhotoData = response
+        .json()
+        .await
+        .expect("Unable to deserialize response body.");
+
+    assert_eq!(stored_photo.id, id.to_string());
+    assert_eq!(stored_photo.band, photo_data.band);
+    assert_eq!(stored_photo.tour, photo_data.tour);
+    assert_eq!(stored_photo.venue, photo_data.venue);
 }

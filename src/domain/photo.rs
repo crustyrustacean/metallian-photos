@@ -1,8 +1,9 @@
 // src/domain/photo.rs
 
+use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Photo {
     pub id: Uuid,
     pub band: String,
@@ -11,7 +12,7 @@ pub struct Photo {
     pub exif_data: Exif,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Exif {
     pub date_time_original: Option<String>,
     pub make: Option<String>,

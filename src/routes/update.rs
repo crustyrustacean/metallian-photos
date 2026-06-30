@@ -1,29 +1,30 @@
-// src/routes/create.rs
+// src/routes/update.rs
 
-use crate::storage::StorageBackend;
 // dependencies
 use crate::database::DatabaseBackend;
 use crate::domain::{Exif, Photo};
-use crate::utils::e500;
+use crate::storage::StorageBackend;
+use crate::utils::{e400, e500};
 use actix_web::HttpResponse;
-use actix_web::web::{Data, Form};
+use actix_web::web::{Data, Form, Path};
 use serde::Deserialize;
 use uuid::Uuid;
 
 #[derive(Deserialize)]
-pub struct CreateFormData {
+pub struct UpdateFormData {
     band: String,
     tour: String,
     venue: String,
 }
 
-/// create endpoint
-pub async fn create(
-    form: Form<CreateFormData>,
+/// update endpoint
+pub async fn update(
+    path: Path<String>,
+    form: Form<UpdateFormData>,
     database: Data<Box<dyn DatabaseBackend>>,
     _storage: Data<Box<dyn StorageBackend>>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let id = Uuid::new_v4();
+    let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let Form(form_data) = form;
     let photo = Photo {
         id,
@@ -39,7 +40,7 @@ pub async fn create(
         },
     };
 
-    database.create(photo).await.map_err(e500)?;
+    database.update(photo).await.map_err(e500)?;
 
-    Ok(HttpResponse::Ok().json(id))
+    Ok(HttpResponse::Ok().finish())
 }
