@@ -1,6 +1,6 @@
 [package]
 name = "r2-photo-api"
-version = "0.3.10"
+version = "0.3.11"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
@@ -14,7 +14,8 @@ name = "r2-photo-api"
 path = "src/bin/main.rs"
 
 [dependencies]
-actix-web = "4.13.0"
+actix-multipart = { version = "0.8.0", features = ["tempfile"] }
+actix-web = "4.14.0"
 async-trait = "0.1.89"
 anyhow = "1.0.103"
 chrono = { version = "0.4.44", default-features = false, features = ["clock"] }

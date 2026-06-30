@@ -4,32 +4,36 @@ use crate::storage::StorageBackend;
 // dependencies
 use crate::database::DatabaseBackend;
 use crate::domain::{Exif, Photo};
-use crate::utils::e500;
+use crate::utils::{e400, e500};
+use actix_multipart::{form::{MultipartForm, tempfile::TempFile, text::Text}};
 use actix_web::HttpResponse;
-use actix_web::web::{Data, Form};
-use serde::Deserialize;
+use actix_web::web::Data;
+use std::fs;
 use uuid::Uuid;
 
-#[derive(Deserialize)]
+#[derive(Debug, MultipartForm)]
 pub struct CreateFormData {
-    band: String,
-    tour: String,
-    venue: String,
+    band: Text<String>,
+    tour: Text<String>,
+    venue: Text<String>,
+    #[multipart(rename = "file")]
+    photo_file: Vec<TempFile>
 }
 
 /// create endpoint
 pub async fn create(
-    form: Form<CreateFormData>,
+    MultipartForm(form): MultipartForm<CreateFormData>,
     database: Data<Box<dyn DatabaseBackend>>,
-    _storage: Data<Box<dyn StorageBackend>>,
+    storage: Data<Box<dyn StorageBackend>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let id = Uuid::new_v4();
-    let Form(form_data) = form;
+    let photo_file = fs::read(form.photo_file[0].file.path()).map_err(e400)?;
+    let photo_file_bytes = photo_file.into();
     let photo = Photo {
         id,
-        band: form_data.band,
-        tour: form_data.tour,
-        venue: form_data.venue,
+        band: form.band.into_inner(),
+        tour: form.tour.into_inner(),
+        venue: form.venue.into_inner(),
         exif_data: Exif {
             date_time_original: None,
             make: None,
@@ -40,6 +44,7 @@ pub async fn create(
     };
 
     database.create(photo).await.map_err(e500)?;
+    storage.save(id, photo_file_bytes).await.map_err(e500)?;
 
     Ok(HttpResponse::Ok().json(id))
 }
