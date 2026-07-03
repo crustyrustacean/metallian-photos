@@ -4,9 +4,18 @@
 // not leak into `domain`. Callers receive a plain `domain::Exif` value and stay
 // unaware of the underlying EXIF library's types.
 
-use exif::{Exif as RawExif, In, Tag, Value};
-
 use crate::domain::Exif;
+use bytes::Bytes;
+use exif::{Error as ExifError, Exif as RawExif, In, Tag, Value};
+use std::io;
+
+pub fn get_raw_exif(bytes: &Bytes) -> Result<RawExif, ExifError> {
+    let mut cursor = io::Cursor::new(bytes);
+    let exifreader = exif::Reader::new();
+    let raw_exif = exifreader.read_from_container(&mut cursor)?;
+
+    Ok(raw_exif)
+}
 
 /// Pull a single ASCII-valued tag out of the primary IFD, if present.
 ///
