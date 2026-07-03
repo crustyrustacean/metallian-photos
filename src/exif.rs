@@ -46,3 +46,23 @@ pub fn parse_exif(raw: &RawExif) -> Exif {
         lens_model: get_ascii(raw, Tag::LensModel),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_exif_extracts_known_tags_from_fixture() {
+        // Arrange — bake the fixture image into the binary at compile time.
+        let raw_bytes = include_bytes!("../tests/fixtures/IMG_2215.HEIC");
+        let bytes = Bytes::copy_from_slice(raw_bytes);
+
+        // Act — the same pipeline the create handler now runs.
+        let raw = get_raw_exif(&bytes).expect("fixture should parse");
+        let exif = parse_exif(&raw);
+
+        // Assert — values captured from this fixture via photo-exif-reader.
+        assert_eq!(exif.make.as_deref(), Some("Apple"));
+        assert_eq!(exif.model.as_deref(), Some("iPhone 16 Pro Max"));
+    }
+}
