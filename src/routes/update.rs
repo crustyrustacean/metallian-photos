@@ -4,7 +4,7 @@
 use crate::database::DatabaseBackend;
 use crate::domain::{Exif, Photo};
 use crate::storage::StorageBackend;
-use crate::utils::{e400, e500};
+use crate::utils::e400;
 use actix_web::HttpResponse;
 use actix_web::web::{Data, Form, Path};
 use serde::Deserialize;
@@ -40,7 +40,7 @@ pub async fn update(
         },
     };
 
-    database.update(photo).await.map_err(e500)?;
+    database.update(photo).await?;
 
     Ok(HttpResponse::Ok().finish())
 }

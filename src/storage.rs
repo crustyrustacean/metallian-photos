@@ -1,5 +1,7 @@
 // src/storage.rs
 
+use crate::utils::error_chain_fmt;
+use actix_web::{ResponseError, http::StatusCode};
 use async_trait::async_trait;
 use bytes::Bytes;
 use thiserror::Error;
@@ -9,13 +11,28 @@ mod opendal;
 
 pub use opendal::*;
 
-#[derive(Debug, Error)]
+#[derive(Error)]
 pub enum StorageError {
     #[error("File not found: {0}")]
     NotFound(String),
 
-    #[error("storage operation failed: {0}")]
-    Operation(#[from] Box<dyn std::error::Error + Send + Sync>),
+    #[error(transparent)]
+    Operation(#[from] anyhow::Error),
+}
+
+impl std::fmt::Debug for StorageError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+
+impl ResponseError for StorageError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            StorageError::NotFound(_) => StatusCode::NOT_FOUND,
+            StorageError::Operation(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
 }
 
 #[async_trait]

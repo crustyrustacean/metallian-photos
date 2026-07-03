@@ -39,8 +39,8 @@ pub async fn create(
         exif_data: parse_exif(&raw_exif),
     };
 
-    database.create(photo).await.map_err(e500)?;
-    storage.save(id, photo_file_bytes).await.map_err(e500)?;
+    database.create(photo).await?;
+    storage.save(id, photo_file_bytes).await?;
 
     Ok(HttpResponse::Ok().json(id))
 }

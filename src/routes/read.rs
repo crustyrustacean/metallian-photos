@@ -3,7 +3,7 @@
 // dependencies
 use crate::database::DatabaseBackend;
 use crate::storage::StorageBackend;
-use crate::utils::{e400, e500};
+use crate::utils::e400;
 use actix_web::HttpResponse;
 use actix_web::web::{Data, Path};
 use uuid::Uuid;
@@ -16,9 +16,9 @@ pub async fn read(
 ) -> Result<HttpResponse, actix_web::Error> {
     let id_string = path.into_inner();
     let id = Uuid::parse_str(&id_string).map_err(e400)?;
-    database.read(id).await.map_err(e500)?;
+    database.read(id).await?;
 
-    let photo = database.read(id).await.map_err(e500)?;
+    let photo = database.read(id).await?;
 
     Ok(HttpResponse::Ok().json(photo))
 }

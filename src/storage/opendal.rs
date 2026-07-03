@@ -4,6 +4,7 @@ use crate::{
     configuration::StorageSettings,
     storage::{StorageBackend, StorageError},
 };
+use anyhow::Context;
 use async_trait::async_trait;
 use bytes::Bytes;
 use opendal::{Operator, Result, services::S3};
@@ -36,7 +37,7 @@ impl StorageBackend for OpendalStorageBackend {
         self.op
             .delete(&id.to_string())
             .await
-            .map_err(|e| StorageError::Operation(e.into()))?;
+            .context("Unable to delete the photo.")?;
 
         Ok(())
     }
@@ -57,7 +58,7 @@ impl StorageBackend for OpendalStorageBackend {
         self.op
             .write(&id.to_string(), bytes)
             .await
-            .map_err(|e| StorageError::Operation(e.into()))?;
+            .context("Unable to save the photo.")?;
 
         Ok(())
     }
