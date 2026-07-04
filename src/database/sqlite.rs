@@ -138,3 +138,68 @@ impl DatabaseBackend for SqliteRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn row(id: &str) -> PhotoRow {
+        PhotoRow {
+            id: Uuid::parse_str(id).unwrap().hyphenated(),
+            band: "Band".into(),
+            tour: "Tour".into(),
+            venue: "Venue".into(),
+            date_time_original: Some("2024-01-02 03:04:05".into()),
+            make: Some("Apple".into()),
+            model: Some("iPhone 16 Pro Max".into()),
+            lens_make: Some("Apple".into()),
+            lens_model: Some("iPhone 16 Pro Max back camera".into()),
+        }
+    }
+
+    #[test]
+    fn photo_row_maps_all_fields_including_exif() {
+        let r = row("550e8400-e29b-41d4-a716-446655440000");
+        let p: Photo = r.into();
+
+        assert_eq!(
+            p.id,
+            Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap()
+        );
+        assert_eq!(p.band, "Band");
+        assert_eq!(p.tour, "Tour");
+        assert_eq!(p.venue, "Venue");
+        assert_eq!(p.exif_data.date_time_original.as_deref(), Some("2024-01-02 03:04:05"));
+        assert_eq!(p.exif_data.make.as_deref(), Some("Apple"));
+        assert_eq!(p.exif_data.model.as_deref(), Some("iPhone 16 Pro Max"));
+        assert_eq!(p.exif_data.lens_make.as_deref(), Some("Apple"));
+        assert_eq!(
+            p.exif_data.lens_model.as_deref(),
+            Some("iPhone 16 Pro Max back camera")
+        );
+    }
+
+    #[test]
+    fn photo_row_maps_when_all_exif_fields_are_absent() {
+        let mut r = row("550e8400-e29b-41d4-a716-446655440000");
+        r.date_time_original = None;
+        r.make = None;
+        r.model = None;
+        r.lens_make = None;
+        r.lens_model = None;
+        let p: Photo = r.into();
+
+        assert!(p.exif_data.date_time_original.is_none());
+        assert!(p.exif_data.make.is_none());
+        assert!(p.exif_data.model.is_none());
+        assert!(p.exif_data.lens_make.is_none());
+        assert!(p.exif_data.lens_model.is_none());
+    }
+
+    #[test]
+    fn id_as_text_round_trips_through_parse() {
+        let id = Uuid::new_v4();
+        let encoded = id_as_text(id).to_string();
+        assert_eq!(encoded.parse::<Uuid>().unwrap(), id);
+    }
+}
