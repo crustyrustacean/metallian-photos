@@ -116,16 +116,14 @@ impl DatabaseBackend for SqliteRepository {
     }
 
     async fn update(&self, id: Uuid, updated_photo: UpdatePhoto) -> Result<(), DatabaseError> {
-        sqlx::query(
-             "UPDATE photos SET band = ?, tour = ?, venue = ? WHERE id = ?"
-        )
-        .bind(updated_photo.band)
-        .bind(updated_photo.tour)
-        .bind(updated_photo.venue)
-        .bind(id_as_text(id))
-        .execute(&self.pool)
-        .await
-        .context("Failed to update the photo.")?;
+        sqlx::query("UPDATE photos SET band = ?, tour = ?, venue = ? WHERE id = ?")
+            .bind(updated_photo.band)
+            .bind(updated_photo.tour)
+            .bind(updated_photo.venue)
+            .bind(id_as_text(id))
+            .execute(&self.pool)
+            .await
+            .context("Failed to update the photo.")?;
 
         Ok(())
     }

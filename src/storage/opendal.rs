@@ -7,7 +7,7 @@ use crate::{
 use anyhow::Context;
 use async_trait::async_trait;
 use bytes::Bytes;
-use opendal::{Operator, Result, services::S3};
+use opendal::{ErrorKind, Operator, Result, services::S3};
 use secrecy::ExposeSecret;
 use uuid::Uuid;
 
@@ -34,12 +34,11 @@ impl OpendalStorageBackend {
 #[async_trait]
 impl StorageBackend for OpendalStorageBackend {
     async fn delete(&self, id: Uuid) -> Result<(), StorageError> {
-        self.op
-            .delete(&id.to_string())
-            .await
-            .context("Unable to delete the photo.")?;
-
-        Ok(())
+        match self.op.delete(&id.to_string()).await {
+            Ok(()) => Ok(()),
+            Err(e) if e.kind() == ErrorKind::NotFound => Ok(()),
+            Err(e) => Err(StorageError::Operation(e.into())),
+        }
     }
 
     async fn find(&self, id: Uuid) -> Result<Bytes, StorageError> {

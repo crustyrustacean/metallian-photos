@@ -22,9 +22,8 @@ pub struct Exif {
 }
 
 #[derive(Debug, Deserialize)]
-   pub struct UpdatePhoto {
-       pub band: String,
-       pub tour: String,
-       pub venue: String,
-   }
-
+pub struct UpdatePhoto {
+    pub band: String,
+    pub tour: String,
+    pub venue: String,
+}

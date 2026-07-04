@@ -2,7 +2,6 @@
 
 // dependencies
 use crate::database::DatabaseBackend;
-use crate::storage::StorageBackend;
 use crate::utils::e400;
 use actix_web::HttpResponse;
 use actix_web::http::StatusCode;
@@ -13,7 +12,6 @@ use uuid::Uuid;
 pub async fn delete(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
-    _storage: Data<Box<dyn StorageBackend>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let id_string = path.into_inner();
     let id = Uuid::parse_str(&id_string).map_err(e400)?;
