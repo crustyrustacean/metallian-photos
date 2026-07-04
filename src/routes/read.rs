@@ -16,7 +16,6 @@ pub async fn read(
 ) -> Result<HttpResponse, actix_web::Error> {
     let id_string = path.into_inner();
     let id = Uuid::parse_str(&id_string).map_err(e400)?;
-    database.read(id).await?;
 
     let photo = database.read(id).await?;
 

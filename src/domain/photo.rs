@@ -12,7 +12,7 @@ pub struct Photo {
     pub exif_data: Exif,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Default, Serialize)]
 pub struct Exif {
     pub date_time_original: Option<String>,
     pub make: Option<String>,
