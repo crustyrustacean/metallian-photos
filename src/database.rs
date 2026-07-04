@@ -1,6 +1,6 @@
 // src/database.rs
 
-use crate::domain::Photo;
+use crate::domain::{Photo, UpdatePhoto};
 use crate::utils::error_chain_fmt;
 use actix_web::{ResponseError, http::StatusCode};
 use async_trait::async_trait;
@@ -39,6 +39,6 @@ impl ResponseError for DatabaseError {
 pub trait DatabaseBackend: Send + Sync {
     async fn create(&self, photo: Photo) -> Result<Uuid, DatabaseError>;
     async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError>;
-    async fn update(&self, photo: Photo) -> Result<(), DatabaseError>;
+    async fn update(&self, id: Uuid, updated_photo: UpdatePhoto) -> Result<(), DatabaseError>;
     async fn delete(&self, id: Uuid) -> Result<(), DatabaseError>;
 }

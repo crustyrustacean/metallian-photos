@@ -8,7 +8,7 @@ use actix_web::HttpResponse;
 use actix_web::web::{Data, Path};
 use uuid::Uuid;
 
-/// create endpoint
+/// read endpoint
 pub async fn read(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,

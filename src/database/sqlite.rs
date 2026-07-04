@@ -2,7 +2,7 @@
 
 use crate::configuration::DatabaseSettings;
 use crate::database::{DatabaseBackend, DatabaseError};
-use crate::domain::{Exif, Photo};
+use crate::domain::{Exif, Photo, UpdatePhoto};
 use anyhow::Context;
 use async_trait::async_trait;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
@@ -115,19 +115,14 @@ impl DatabaseBackend for SqliteRepository {
         Ok(row.into())
     }
 
-    async fn update(&self, photo: Photo) -> Result<(), DatabaseError> {
+    async fn update(&self, id: Uuid, updated_photo: UpdatePhoto) -> Result<(), DatabaseError> {
         sqlx::query(
-             "UPDATE photos SET band = ?, tour = ?, venue = ?, date_time_original = ?, make = ?, model = ?, lens_make = ?, lens_model = ? WHERE id = ?"
+             "UPDATE photos SET band = ?, tour = ?, venue = ? WHERE id = ?"
         )
-        .bind(photo.band)
-        .bind(photo.tour)
-        .bind(photo.venue)
-        .bind(photo.exif_data.date_time_original)
-        .bind(photo.exif_data.make)
-        .bind(photo.exif_data.model)
-        .bind(photo.exif_data.lens_make)
-        .bind(photo.exif_data.lens_model)
-        .bind(id_as_text(photo.id))
+        .bind(updated_photo.band)
+        .bind(updated_photo.tour)
+        .bind(updated_photo.venue)
+        .bind(id_as_text(id))
         .execute(&self.pool)
         .await
         .context("Failed to update the photo.")?;
