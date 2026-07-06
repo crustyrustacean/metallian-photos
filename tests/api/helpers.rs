@@ -5,10 +5,12 @@ use r2_photo_api::configuration::get_configuration;
 use r2_photo_api::database::DatabaseBackend;
 use r2_photo_api::database::SqliteRepository;
 use r2_photo_api::startup::Application;
-use r2_photo_api::storage::OpendalStorageBackend;
+use r2_photo_api::storage::InMemoryStorageBackend;
 use r2_photo_api::storage::StorageBackend;
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
+use reqwest::multipart;
 use std::sync::LazyLock;
+use uuid::Uuid;
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
 static TRACING: LazyLock<()> = LazyLock::new(|| {
@@ -53,10 +55,7 @@ pub async fn spawn_app() -> TestApp {
     let database_backend: Box<dyn DatabaseBackend> = Box::new(database);
 
     // build the storage backend
-    let storage_backend: Box<dyn StorageBackend> = Box::new(
-        OpendalStorageBackend::new(&configuration.storage)
-            .expect("Unable to build storage backend."),
-    );
+    let storage_backend: Box<dyn StorageBackend> = Box::new(InMemoryStorageBackend::new());
 
     // Launch the application as a background task
     let application = Application::build(configuration.clone(), database_backend, storage_backend)
@@ -78,4 +77,38 @@ pub async fn spawn_app() -> TestApp {
     };
 
     test_app
+}
+
+/// Create a photo via the multipart `/photos` endpoint and return its id.
+/// Used as test setup by the read/update/delete tests, and exercised
+/// directly by the create test.
+pub async fn create_photo(client: &reqwest::Client, address: &str) -> Uuid {
+    let file_part = multipart::Part::bytes(vec![0u8; 16])
+        .file_name("test.heic")
+        .mime_str("image/heic")
+        .unwrap();
+
+    let form = multipart::Form::new()
+        .text("band", "The Band")
+        .text("tour", "Tour of Champions")
+        .text("venue", "Best Ever")
+        .part("file", file_part);
+
+    let response = client
+        .post(&format!("{}/photos", address))
+        .multipart(form)
+        .send()
+        .await
+        .expect("Failed to execute create request.");
+
+    assert!(
+        response.status().is_success(),
+        "create photo failed with status: {}",
+        response.status()
+    );
+
+    response
+        .json()
+        .await
+        .expect("Unable to obtain response body.")
 }

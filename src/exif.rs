@@ -10,10 +10,9 @@ use exif::{Error as ExifError, Exif as RawExif, In, Tag, Value};
 use std::io;
 
 /// return an EXIF type from the bytes of the photo
-/// 
+///
 /// receive the raw photo bytes from the create handler and read them
 /// to build the EXIF type
-
 pub fn get_raw_exif(bytes: &Bytes) -> Result<RawExif, ExifError> {
     let mut cursor = io::Cursor::new(bytes);
     let exifreader = exif::Reader::new();
@@ -67,7 +66,10 @@ mod tests {
         let exif = parse_exif(&raw);
 
         // Assert — values captured from this fixture via photo-exif-reader.
-        assert_eq!(exif.date_time_original.as_deref(), Some("2026:01:24 19:55:19"));
+        assert_eq!(
+            exif.date_time_original.as_deref(),
+            Some("2026:01:24 19:55:19")
+        );
         assert_eq!(exif.make.as_deref(), Some("Apple"));
         assert_eq!(exif.model.as_deref(), Some("iPhone 16 Pro Max"));
         assert_eq!(exif.lens_make.as_deref(), Some("Apple"));

@@ -6,7 +6,7 @@ use std::io::Cursor;
 
 pub fn heic_decode(image_bytes: &[u8]) -> DecodeOutput {
     DecoderConfig::new()
-        .decode(&image_bytes, PixelLayout::Rgba8)
+        .decode(image_bytes, PixelLayout::Rgba8)
         .unwrap()
 }
 

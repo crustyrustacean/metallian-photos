@@ -1,22 +1,21 @@
 // tests/api/update.rs
 
 // dependencies
-use crate::helpers::spawn_app;
-use serde::{Deserialize, Serialize};
+use crate::helpers::{create_photo, spawn_app};
+use serde::Serialize;
 use sqlx::FromRow;
-use uuid::Uuid;
-
-#[derive(Deserialize, Serialize)]
-struct PhotoData {
-    band: String,
-    tour: String,
-    venue: String,
-}
 
 #[allow(dead_code)]
 #[derive(FromRow)]
 struct StoredPhotoData {
     id: String,
+    band: String,
+    tour: String,
+    venue: String,
+}
+
+#[derive(Serialize)]
+struct UpdatePhotoData {
     band: String,
     tour: String,
     venue: String,
@@ -28,33 +27,17 @@ async fn update_photo_endpoint_updates_photo_and_returns_200_ok() {
     let app = spawn_app().await;
     let client = reqwest::Client::new();
 
-    let photo_data = PhotoData {
-        band: "The Band".to_string(),
-        tour: "Tour of Champions".to_string(),
-        venue: "Best Ever".to_string(),
-    };
+    let id = create_photo(&client, &app.address).await;
 
-    // Act — create the photo first so we have an id to update
-    let response = client
-        .post(&format!("{}/photos", &app.address))
-        .form(&photo_data)
-        .send()
-        .await
-        .expect("Failed to execute request.");
-
-    let id: Uuid = response
-        .json()
-        .await
-        .expect("Unable to obtain response body.");
-
-    let updated_photo_data = PhotoData {
+    let updated_photo_data = UpdatePhotoData {
         band: "The Real Band".to_string(),
         tour: "The Real Tour of Champions".to_string(),
         venue: "Second Best Ever".to_string(),
     };
 
+    // Act — the update endpoint takes urlencoded form data
     let response = client
-        .put(&format!("{}/photos/{}", &app.address, id.to_string()))
+        .put(&format!("{}/photos/{}", &app.address, id))
         .form(&updated_photo_data)
         .send()
         .await

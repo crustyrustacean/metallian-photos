@@ -169,7 +169,10 @@ mod tests {
         assert_eq!(p.band, "Band");
         assert_eq!(p.tour, "Tour");
         assert_eq!(p.venue, "Venue");
-        assert_eq!(p.exif_data.date_time_original.as_deref(), Some("2024-01-02 03:04:05"));
+        assert_eq!(
+            p.exif_data.date_time_original.as_deref(),
+            Some("2024-01-02 03:04:05")
+        );
         assert_eq!(p.exif_data.make.as_deref(), Some("Apple"));
         assert_eq!(p.exif_data.model.as_deref(), Some("iPhone 16 Pro Max"));
         assert_eq!(p.exif_data.lens_make.as_deref(), Some("Apple"));
@@ -201,5 +204,145 @@ mod tests {
         let id = Uuid::new_v4();
         let encoded = id_as_text(id).to_string();
         assert_eq!(encoded.parse::<Uuid>().unwrap(), id);
+    }
+
+    // ------------------------------------------------------------------
+    // CRUD tests — exercise the DatabaseBackend trait against an in-memory
+    // SQLite database (max_connections = 1 so every op hits the same DB).
+    // ------------------------------------------------------------------
+
+    async fn test_repo() -> SqliteRepository {
+        SqliteRepository::new(&DatabaseSettings {
+            path: ":memory:".to_string(),
+            max_connections: Some(1),
+        })
+        .await
+        .expect("failed to build test repo")
+    }
+
+    fn sample_photo(id: Uuid) -> Photo {
+        Photo {
+            id,
+            band: "The Band".into(),
+            tour: "Tour of Champions".into(),
+            venue: "Best Ever".into(),
+            exif_data: Exif::default(),
+        }
+    }
+
+    // --- create ---
+
+    #[tokio::test]
+    async fn create_persists_and_returns_id() {
+        let db = test_repo().await;
+        let id = Uuid::new_v4();
+
+        let returned = db.create(sample_photo(id)).await.unwrap();
+        assert_eq!(returned, id);
+
+        // round-trip: it can be read back
+        let read = db.read(id).await.unwrap();
+        assert_eq!(read.band, "The Band");
+    }
+
+    #[tokio::test]
+    async fn create_with_duplicate_id_errors() {
+        let db = test_repo().await;
+        let id = Uuid::new_v4();
+        db.create(sample_photo(id)).await.unwrap();
+
+        let result = db.create(sample_photo(id)).await;
+        assert!(matches!(result, Err(DatabaseError::Operation(_))));
+    }
+
+    // --- read ---
+
+    #[tokio::test]
+    async fn read_returns_stored_photo() {
+        let db = test_repo().await;
+        let id = Uuid::new_v4();
+        db.create(sample_photo(id)).await.unwrap();
+
+        let photo = db.read(id).await.unwrap();
+        assert_eq!(photo.id, id);
+        assert_eq!(photo.band, "The Band");
+        assert_eq!(photo.tour, "Tour of Champions");
+        assert_eq!(photo.venue, "Best Ever");
+    }
+
+    #[tokio::test]
+    async fn read_on_missing_id_returns_not_found() {
+        let db = test_repo().await;
+        let result = db.read(Uuid::new_v4()).await;
+        assert!(matches!(result, Err(DatabaseError::NotFound(_))));
+    }
+
+    // --- update ---
+
+    #[tokio::test]
+    async fn update_changes_stored_fields() {
+        let db = test_repo().await;
+        let id = Uuid::new_v4();
+        db.create(sample_photo(id)).await.unwrap();
+
+        db.update(
+            id,
+            UpdatePhoto {
+                band: "New Band".into(),
+                tour: "New Tour".into(),
+                venue: "New Venue".into(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let updated = db.read(id).await.unwrap();
+        assert_eq!(updated.band, "New Band");
+        assert_eq!(updated.tour, "New Tour");
+        assert_eq!(updated.venue, "New Venue");
+    }
+
+    #[tokio::test]
+    async fn update_on_missing_id_succeeds_silently() {
+        // SQL `UPDATE ... WHERE id = ?` on a non-existent row affects 0 rows
+        // but is not itself an error. This documents that the repo mirrors
+        // SQL's behaviour: it returns Ok.
+        let db = test_repo().await;
+        let result = db
+            .update(
+                Uuid::new_v4(),
+                UpdatePhoto {
+                    band: "Ghost".into(),
+                    tour: "Ghost".into(),
+                    venue: "Ghost".into(),
+                },
+            )
+            .await;
+        assert!(result.is_ok());
+    }
+
+    // --- delete ---
+
+    #[tokio::test]
+    async fn delete_removes_photo() {
+        let db = test_repo().await;
+        let id = Uuid::new_v4();
+        db.create(sample_photo(id)).await.unwrap();
+
+        db.delete(id).await.unwrap();
+
+        // subsequent read fails with NotFound
+        let result = db.read(id).await;
+        assert!(matches!(result, Err(DatabaseError::NotFound(_))));
+    }
+
+    #[tokio::test]
+    async fn delete_on_missing_id_succeeds_silently() {
+        // SQL `DELETE ... WHERE id = ?` on a non-existent row affects 0 rows
+        // but is not itself an error. This documents that the repo mirrors
+        // SQL's behaviour: it returns Ok.
+        let db = test_repo().await;
+        let result = db.delete(Uuid::new_v4()).await;
+        assert!(result.is_ok());
     }
 }

@@ -7,8 +7,10 @@ use bytes::Bytes;
 use thiserror::Error;
 use uuid::Uuid;
 
+mod in_memory;
 mod opendal;
 
+pub use in_memory::*;
 pub use opendal::*;
 
 #[derive(Error)]
