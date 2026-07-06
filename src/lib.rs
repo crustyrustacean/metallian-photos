@@ -2,6 +2,7 @@
 
 // module declarations
 pub mod configuration;
+pub mod conversion;
 pub mod database;
 pub mod domain;
 pub mod exif;

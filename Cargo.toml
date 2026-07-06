@@ -18,8 +18,13 @@ actix-multipart = { version = "0.8.0", features = ["tempfile"] }
 actix-web = "4.14.0"
 async-trait = "0.1.89"
 anyhow = "1.0.103"
+bytes = "1.12.0"
+dotenvy = "0.15.7"
 chrono = { version = "0.4.44", default-features = false, features = ["clock"] }
 config = { version = "0.15.25", default-features = false, features = ["yaml"] }
+heic = "0.1.6"
+image = "0.25.10"
+kamadak-exif = "0.6.1"
 log = "0.4.33"
 opendal = { version = "0.57.0", features = ["services-s3", "services-fs"] }
 reqwest = { version = "0.13.2", features = [ "json" ] }
@@ -43,9 +48,6 @@ tracing-log = "0.2.0"
 tracing-bunyan-formatter = "0.3.1"
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 uuid = { version = "1.23.4", features = ["v4", "serde"] }
-bytes = "1.12.0"
-dotenvy = "0.15.7"
-kamadak-exif = "0.6.1"
 
 [dev-dependencies]
 reqwest = { version = "0.13.2", features = [ "form" ] }
