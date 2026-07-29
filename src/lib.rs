@@ -10,4 +10,5 @@ pub mod routes;
 pub mod startup;
 pub mod storage;
 pub mod telemetry;
+pub mod template;
 pub mod utils;
