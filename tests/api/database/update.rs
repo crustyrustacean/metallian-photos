@@ -57,3 +57,27 @@ async fn update_photo_endpoint_updates_photo_and_returns_200_ok() {
     assert_eq!(result.tour, updated_photo_data.tour);
     assert_eq!(result.venue, updated_photo_data.venue);
 }
+
+#[tokio::test]
+async fn update_photo_endpoint_with_malformed_uuid_returns_400() {
+    // Arrange
+    let app = spawn_app().await;
+    let client = reqwest::Client::new();
+
+    let updated_photo_data = UpdatePhotoData {
+        band: "The Real Band".to_string(),
+        tour: "The Real Tour of Champions".to_string(),
+        venue: "Second Best Ever".to_string(),
+    };
+
+    // Act
+    let response = client
+        .put(&format!("{}/photos/{}", &app.address, "not-a-valid-uuid"))
+        .form(&updated_photo_data)
+        .send()
+        .await
+        .expect("Failed to execute request");
+
+    // Assert
+    assert_eq!(response.status().as_u16(), 400);
+}

@@ -28,8 +28,12 @@ pub async fn create(
     storage: Data<Box<dyn StorageBackend>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let id = Uuid::new_v4();
-    let photo_file = fs::read(form.photo_file[0].file.path()).map_err(e400)?;
-    let photo_file_bytes = photo_file.into();
+    let photo_file = form
+        .photo_file
+        .into_iter()
+        .next()
+        .ok_or_else(|| e400("a file upload is required"))?;
+    let photo_file_bytes = fs::read(photo_file.file.path()).map_err(e400)?.into();
     let exif_data = match get_raw_exif(&photo_file_bytes) {
         Ok(raw) => parse_exif(&raw),
         Err(_) => Exif::default(),
