@@ -8,6 +8,7 @@ use r2_photo_api::startup::Application;
 use r2_photo_api::storage::OpendalStorageBackend;
 use r2_photo_api::storage::StorageBackend;
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
+use tera::Tera;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -21,6 +22,11 @@ async fn main() -> anyhow::Result<()> {
     // build the configuration
     let configuration = get_configuration().expect("Failed to read configuration.");
 
+    // build the templates
+    let mut tera_templates = Tera::default();
+    tera_templates.load_from_glob("templates/**/*.html")
+        .expect("Unable to load the Tera templates.");
+
     // build the database backend
     let database_backend: Box<dyn DatabaseBackend> =
         Box::new(SqliteRepository::new(&configuration.database).await?);
@@ -31,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
 
     // build the application by passing the configuration, database, and storage backends
     let application =
-        Application::build(configuration.clone(), database_backend, storage_backend).await?;
+        Application::build(configuration.clone(), tera_templates,database_backend, storage_backend).await?;
 
     // run the application
     application.run_until_stopped().await?;

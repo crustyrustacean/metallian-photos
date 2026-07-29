@@ -4,6 +4,7 @@
 pub mod create;
 pub mod delete;
 pub mod health;
+pub mod index;
 pub mod read;
 pub mod update;
 
@@ -11,5 +12,6 @@ pub mod update;
 pub use create::*;
 pub use delete::*;
 pub use health::*;
+pub use index::*;
 pub use read::*;
 pub use update::*;

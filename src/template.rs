@@ -5,6 +5,8 @@ use serde::Serialize;
 use actix_web::{ResponseError, http::StatusCode};
 use thiserror::Error;
 
+mod tera;
+
 #[derive(Error)]
 pub enum TemplateError {
     #[error("template not found: {0}")]

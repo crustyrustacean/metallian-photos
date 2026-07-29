@@ -9,6 +9,7 @@ use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
 
 use std::net::TcpListener;
+use tera::Tera;
 use tracing_actix_web::TracingLogger;
 
 pub struct Application {
@@ -19,6 +20,7 @@ pub struct Application {
 impl Application {
     pub async fn build(
         configuration: Settings,
+        tera_templates: Tera,
         database_backend: Box<dyn DatabaseBackend>,
         storage_backend: Box<dyn StorageBackend>,
     ) -> Result<Self, anyhow::Error> {
@@ -31,6 +33,7 @@ impl Application {
         let port = listener.local_addr()?.port();
         let server = run(
             listener,
+            tera_templates,
             database_backend,
             storage_backend,
             configuration.application.base_url.clone(),
@@ -52,11 +55,13 @@ pub struct ApplicationBaseUrl(pub String);
 
 async fn run(
     listener: TcpListener,
+    tera_templates: Tera,
     database: Box<dyn DatabaseBackend>,
     storage: Box<dyn StorageBackend>,
     base_url: String,
 ) -> Result<Server, anyhow::Error> {
     let base_url = Data::new(ApplicationBaseUrl(base_url));
+    let tera_templates = Data::new(tera_templates);
     let database_repository = Data::new(database);
     let storage_backend = Data::new(storage);
     let server = HttpServer::new(move || {
@@ -68,6 +73,7 @@ async fn run(
             .route("/photos/{id}", web::put().to(update))
             .route("/photos/{id}", web::delete().to(delete))
             .app_data(base_url.clone())
+            .app_data(tera_templates.clone())
             .app_data(database_repository.clone())
             .app_data(storage_backend.clone())
     })
