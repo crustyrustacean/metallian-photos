@@ -7,9 +7,11 @@ use r2_photo_api::database::SqliteRepository;
 use r2_photo_api::startup::Application;
 use r2_photo_api::storage::InMemoryStorageBackend;
 use r2_photo_api::storage::StorageBackend;
+use r2_photo_api::template::{TemplateRenderer, tera::TeraRenderer};
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
 use reqwest::multipart;
 use std::sync::LazyLock;
+use tera::Tera;
 use uuid::Uuid;
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
@@ -46,6 +48,16 @@ pub async fn spawn_app() -> TestApp {
         c
     };
 
+    // build the templates
+    let mut tera_engine = Tera::default();
+    tera_engine.load_from_glob("templates/**/*.html")
+        .expect("Unable to load the Tera templates.");
+        
+    // Wrap it in our new renderer and box it up as a trait object
+    let template_renderer: Box<dyn TemplateRenderer> = Box::new(TeraRenderer {
+        engine: tera_engine,
+    });
+
     // build the database backend
     let database = SqliteRepository::new(&configuration.database)
         .await
@@ -58,7 +70,7 @@ pub async fn spawn_app() -> TestApp {
     let storage_backend: Box<dyn StorageBackend> = Box::new(InMemoryStorageBackend::new());
 
     // Launch the application as a background task
-    let application = Application::build(configuration.clone(), database_backend, storage_backend)
+    let application = Application::build(configuration.clone(), template_renderer, database_backend, storage_backend)
         .await
         .expect("Failed to build application.");
     let application_port = application.port();

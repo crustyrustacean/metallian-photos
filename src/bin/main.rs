@@ -8,6 +8,7 @@ use r2_photo_api::startup::Application;
 use r2_photo_api::storage::OpendalStorageBackend;
 use r2_photo_api::storage::StorageBackend;
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
+use r2_photo_api::template::{TemplateRenderer, tera::TeraRenderer};
 use tera::Tera;
 
 #[tokio::main]
@@ -23,9 +24,14 @@ async fn main() -> anyhow::Result<()> {
     let configuration = get_configuration().expect("Failed to read configuration.");
 
     // build the templates
-    let mut tera_templates = Tera::default();
-    tera_templates.load_from_glob("templates/**/*.html")
+    let mut tera_engine = Tera::default();
+    tera_engine.load_from_glob("templates/**/*.html")
         .expect("Unable to load the Tera templates.");
+        
+    // Wrap it in our new renderer and box it up as a trait object
+    let template_renderer: Box<dyn TemplateRenderer> = Box::new(TeraRenderer {
+        engine: tera_engine,
+    });
 
     // build the database backend
     let database_backend: Box<dyn DatabaseBackend> =
@@ -37,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
 
     // build the application by passing the configuration, database, and storage backends
     let application =
-        Application::build(configuration.clone(), tera_templates,database_backend, storage_backend).await?;
+        Application::build(configuration.clone(), template_renderer,database_backend, storage_backend).await?;
 
     // run the application
     application.run_until_stopped().await?;

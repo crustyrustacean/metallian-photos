@@ -1,11 +1,10 @@
 // src/template.rs
 
 use crate::utils::error_chain_fmt;
-use serde::Serialize;
 use actix_web::{ResponseError, http::StatusCode};
 use thiserror::Error;
 
-mod tera;
+pub mod tera;
 
 #[derive(Error)]
 pub enum TemplateError {
@@ -32,5 +31,5 @@ impl ResponseError for TemplateError {
 }
 
 pub trait TemplateRenderer: Send + Sync {
-    fn render<T: Serialize>(&self, template_name: &str, context: &T) -> Result<String, TemplateError>;
+    fn render(&self, template_name: &str, context: &serde_json::Value) -> Result<String, TemplateError>;
 }
