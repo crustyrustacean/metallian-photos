@@ -2,26 +2,37 @@
 
 use anyhow::Context;
 use crate::template::{TemplateError, TemplateRenderer};
-use serde::Serialize;
 use tera::{Context as TeraContext, Tera};
 
-// Keep your page context for use elsewhere, but the renderer 
-// doesn't need to know about it.
 #[derive(Debug)]
 pub struct PageContext<'a> {
     pub title: &'a str,
     pub content: &'a str,
 }
 
-// The renderer only needs to hold the Tera engine state
 pub struct TeraRenderer {
-    pub engine: Tera,
+    engine: Tera,
 }
 
-// Implement the trait generally so it can accept ANY serializable context
+impl TeraRenderer {
+    pub fn new() -> Result<Self, TemplateError> {
+        let mut engine = Tera::default();
+        engine.load_from_glob("templates/**/*.html").context("Unable to load the templates")?;
+
+        Ok(Self { engine })
+    }
+
+    pub fn engine(&self) -> &Tera {
+        &self.engine
+    }
+}
+
 impl TemplateRenderer for TeraRenderer {
     fn render(&self, template_name: &str, context: &serde_json::Value) -> Result<String, TemplateError> {
-        
+        if !self.engine.contains_template(template_name) {
+            return Err(TemplateError::NotFound(template_name.to_string()));
+        }
+
         let template_context = TeraContext::from_serialize(context)
             .context("Unable to build the page context")?;
 
@@ -29,5 +40,25 @@ impl TemplateRenderer for TeraRenderer {
             .context("Tera engine failed to render template")?;
 
         Ok(output)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    
+    use super::*;
+
+    #[test]
+    fn render_returns_404_not_found_for_missing_template() {
+        // Arrange        
+        let renderer = TeraRenderer::new().unwrap();
+        let template_name = "test";
+        let context = serde_json::json!({});
+
+        // Act
+        let result = renderer.render(template_name, &context);
+
+        // Assert
+        assert!(matches!(result, Err(TemplateError::NotFound(_))));
     }
 }

@@ -3,7 +3,7 @@
 // dependencies
 use crate::configuration::Settings;
 use crate::database::DatabaseBackend;
-use crate::routes::{create, delete, health_check, read, update, get_index_page};
+use crate::routes::{api, frontend};
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
 use actix_web::dev::Server;
@@ -67,12 +67,17 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
-            .route("/", web::get().to(get_index_page))
-            .route("/health_check", web::get().to(health_check))
-            .route("/photos", web::post().to(create))
-            .route("/photos/{id}", web::get().to(read))
-            .route("/photos/{id}", web::put().to(update))
-            .route("/photos/{id}", web::delete().to(delete))
+            // frontend routes — browser-facing HTML pages
+            .route("/", web::get().to(frontend::get_index_page))
+            // api routes — machine-facing JSON endpoints
+            .service(
+                web::scope("/api")
+                    .route("/health_check", web::get().to(api::health_check))
+                    .route("/photos", web::post().to(api::create_photo))
+                    .route("/photos/{id}", web::get().to(api::read_photo))
+                    .route("/photos/{id}", web::put().to(api::update_photo))
+                    .route("/photos/{id}", web::delete().to(api::delete_photo)),
+            )
             .app_data(base_url.clone())
             .app_data(template_renderer.clone())
             .app_data(database_repository.clone())

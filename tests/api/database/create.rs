@@ -51,7 +51,7 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
 
     // Act
     let response = client
-        .post(&format!("{}/photos", &app.address))
+        .post(&format!("{}/api/photos", &app.address))
         .multipart(form)
         .send()
         .await

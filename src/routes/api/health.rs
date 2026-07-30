@@ -1,9 +1,8 @@
-// src/routes/health.rs
+// src/routes/api/health.rs
 
-// dependencies
 use actix_web::HttpResponse;
 
-/// health check endpoint
+/// GET /api/health_check
 pub async fn health_check() -> HttpResponse {
     HttpResponse::Ok().finish()
 }

@@ -3,3 +3,4 @@
 mod database;
 mod health;
 mod helpers;
+mod templates;

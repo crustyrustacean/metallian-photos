@@ -23,7 +23,7 @@ async fn read_photo_endpoint_returns_200_ok_and_a_single_photo() {
 
     // Act
     let response = client
-        .get(&format!("{}/photos/{}", &app.address, id))
+        .get(&format!("{}/api/photos/{}", &app.address, id))
         .send()
         .await
         .expect("Failed to execute request");
@@ -48,7 +48,7 @@ async fn read_photo_endpoint_with_malformed_uuid_returns_400() {
 
     // Act
     let response = client
-        .get(&format!("{}/photos/{}", &app.address, "not-a-valid-uuid"))
+        .get(&format!("{}/api/photos/{}", &app.address, "not-a-valid-uuid"))
         .send()
         .await
         .expect("Failed to execute request");
@@ -67,7 +67,7 @@ async fn read_photo_endpoint_with_unknown_uuid_returns_404() {
 
     // Act
     let response = client
-        .get(&format!("{}/photos/{}", &app.address, missing_id))
+        .get(&format!("{}/api/photos/{}", &app.address, missing_id))
         .send()
         .await
         .expect("Failed to execute request");

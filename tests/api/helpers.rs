@@ -7,11 +7,10 @@ use r2_photo_api::database::SqliteRepository;
 use r2_photo_api::startup::Application;
 use r2_photo_api::storage::InMemoryStorageBackend;
 use r2_photo_api::storage::StorageBackend;
-use r2_photo_api::template::{TemplateRenderer, tera::TeraRenderer};
+use r2_photo_api::template::TemplateRenderer;
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
 use reqwest::multipart;
 use std::sync::LazyLock;
-use tera::Tera;
 use uuid::Uuid;
 
 // Ensure that the `tracing` stack is only initialised once using `once_cell`
@@ -49,14 +48,10 @@ pub async fn spawn_app() -> TestApp {
     };
 
     // build the templates
-    let mut tera_engine = Tera::default();
-    tera_engine.load_from_glob("templates/**/*.html")
-        .expect("Unable to load the Tera templates.");
-        
-    // Wrap it in our new renderer and box it up as a trait object
-    let template_renderer: Box<dyn TemplateRenderer> = Box::new(TeraRenderer {
-        engine: tera_engine,
-    });
+    let template_renderer: Box<dyn TemplateRenderer> = Box::new(
+        r2_photo_api::template::tera::TeraRenderer::new()
+            .expect("Failed to build the template renderer."),
+    );
 
     // build the database backend
     let database = SqliteRepository::new(&configuration.database)
@@ -107,7 +102,7 @@ pub async fn create_photo(client: &reqwest::Client, address: &str) -> Uuid {
         .part("file", file_part);
 
     let response = client
-        .post(&format!("{}/photos", address))
+        .post(&format!("{}/api/photos", address))
         .multipart(form)
         .send()
         .await
