@@ -34,8 +34,13 @@ async fn main() -> anyhow::Result<()> {
         Box::new(OpendalStorageBackend::new(&configuration.storage)?);
 
     // build the application by passing the configuration, database, and storage backends
-    let application =
-        Application::build(configuration.clone(), template_renderer,database_backend, storage_backend).await?;
+    let application = Application::build(
+        configuration.clone(),
+        template_renderer,
+        database_backend,
+        storage_backend,
+    )
+    .await?;
 
     // run the application
     application.run_until_stopped().await?;

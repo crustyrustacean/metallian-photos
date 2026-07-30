@@ -1,15 +1,8 @@
 // src/template/tera.rs
 
-use anyhow::Context;
 use crate::template::{TemplateError, TemplateRenderer};
+use anyhow::Context;
 use tera::{Context as TeraContext, Tera};
-
-#[derive(Debug)]
-pub struct PageContext<'a> {
-    pub title: &'a str,
-    pub content: &'a str,
-}
-
 pub struct TeraRenderer {
     engine: Tera,
 }
@@ -17,7 +10,9 @@ pub struct TeraRenderer {
 impl TeraRenderer {
     pub fn new() -> Result<Self, TemplateError> {
         let mut engine = Tera::default();
-        engine.load_from_glob("templates/**/*.html").context("Unable to load the templates")?;
+        engine
+            .load_from_glob("templates/**/*.html")
+            .context("Unable to load the templates")?;
 
         Ok(Self { engine })
     }
@@ -28,15 +23,21 @@ impl TeraRenderer {
 }
 
 impl TemplateRenderer for TeraRenderer {
-    fn render(&self, template_name: &str, context: &serde_json::Value) -> Result<String, TemplateError> {
+    fn render(
+        &self,
+        template_name: &str,
+        context: &serde_json::Value,
+    ) -> Result<String, TemplateError> {
         if !self.engine.contains_template(template_name) {
             return Err(TemplateError::NotFound(template_name.to_string()));
         }
 
-        let template_context = TeraContext::from_serialize(context)
-            .context("Unable to build the page context")?;
+        let template_context =
+            TeraContext::from_serialize(context).context("Unable to build the page context")?;
 
-        let output = self.engine.render(template_name, &template_context)
+        let output = self
+            .engine
+            .render(template_name, &template_context)
             .context("Tera engine failed to render template")?;
 
         Ok(output)
@@ -45,12 +46,12 @@ impl TemplateRenderer for TeraRenderer {
 
 #[cfg(test)]
 mod tests {
-    
+
     use super::*;
 
     #[test]
     fn render_returns_404_not_found_for_missing_template() {
-        // Arrange        
+        // Arrange
         let renderer = TeraRenderer::new().unwrap();
         let template_name = "test";
         let context = serde_json::json!({});

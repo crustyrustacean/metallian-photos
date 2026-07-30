@@ -17,9 +17,7 @@ async fn index_page_returns_200_ok_and_renders_html_content() {
 
     // Assert
     assert!(response.status().is_success());
-    
+
     let body = response.text().await.unwrap();
     assert!(body.contains("<!DOCTYPE html>"));
-
-    
 }

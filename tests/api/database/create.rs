@@ -78,7 +78,6 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
 
     // Assert
     assert_eq!(response.status().as_u16(), 400);
-    
 }
 
 #[tokio::test]
@@ -104,7 +103,10 @@ async fn create_photo_with_fixture_extracts_and_persists_exif_data() {
         .await
         .expect("Unable to deserialize response body.");
 
-    assert_eq!(photo.exif_data.date_time_original.as_deref(), Some("2026:01:24 19:55:19"));
+    assert_eq!(
+        photo.exif_data.date_time_original.as_deref(),
+        Some("2026:01:24 19:55:19")
+    );
     assert_eq!(photo.exif_data.make.as_deref(), Some("Apple"));
     assert_eq!(photo.exif_data.model.as_deref(), Some("iPhone 16 Pro Max"));
     assert_eq!(photo.exif_data.lens_make.as_deref(), Some("Apple"));

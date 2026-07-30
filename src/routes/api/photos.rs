@@ -90,8 +90,8 @@ pub async fn delete_photo(
     storage: Data<Box<dyn StorageBackend>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
-    database.delete(id).await?;
     storage.delete(id).await?;
+    database.delete(id).await?;
 
     Ok(HttpResponse::Ok().status(StatusCode::NO_CONTENT).finish())
 }

@@ -7,8 +7,8 @@ use r2_photo_api::database::SqliteRepository;
 use r2_photo_api::startup::Application;
 use r2_photo_api::storage::InMemoryStorageBackend;
 use r2_photo_api::storage::StorageBackend;
-use r2_photo_api::template::TemplateRenderer;
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
+use r2_photo_api::template::TemplateRenderer;
 use reqwest::multipart;
 use std::sync::LazyLock;
 use uuid::Uuid;
@@ -65,9 +65,14 @@ pub async fn spawn_app() -> TestApp {
     let storage_backend: Box<dyn StorageBackend> = Box::new(InMemoryStorageBackend::new());
 
     // Launch the application as a background task
-    let application = Application::build(configuration.clone(), template_renderer, database_backend, storage_backend)
-        .await
-        .expect("Failed to build application.");
+    let application = Application::build(
+        configuration.clone(),
+        template_renderer,
+        database_backend,
+        storage_backend,
+    )
+    .await
+    .expect("Failed to build application.");
     let application_port = application.port();
     let _ = tokio::spawn(application.run_until_stopped());
 
@@ -127,11 +132,7 @@ pub async fn create_photo_with_fixture(client: &reqwest::Client, address: &str) 
 
 /// Shared POST logic for both helpers — sends the multipart form and
 /// returns the created photo's id.
-async fn post_photo_form(
-    client: &reqwest::Client,
-    address: &str,
-    form: multipart::Form,
-) -> Uuid {
+async fn post_photo_form(client: &reqwest::Client, address: &str, form: multipart::Form) -> Uuid {
     let response = client
         .post(&format!("{}/api/photos", address))
         .multipart(form)

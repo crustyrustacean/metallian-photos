@@ -72,7 +72,10 @@ async fn update_photo_endpoint_with_malformed_uuid_returns_400() {
 
     // Act
     let response = client
-        .put(&format!("{}/api/photos/{}", &app.address, "not-a-valid-uuid"))
+        .put(&format!(
+            "{}/api/photos/{}",
+            &app.address, "not-a-valid-uuid"
+        ))
         .form(&updated_photo_data)
         .send()
         .await

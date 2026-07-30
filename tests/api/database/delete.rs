@@ -31,7 +31,10 @@ async fn delete_photo_endpoint_with_malformed_uuid_returns_400() {
 
     // Act
     let response = client
-        .delete(&format!("{}/api/photos/{}", &app.address, "not-a-valid-uuid"))
+        .delete(&format!(
+            "{}/api/photos/{}",
+            &app.address, "not-a-valid-uuid"
+        ))
         .send()
         .await
         .expect("Failed to execute request");

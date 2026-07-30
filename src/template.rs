@@ -31,5 +31,9 @@ impl ResponseError for TemplateError {
 }
 
 pub trait TemplateRenderer: Send + Sync {
-    fn render(&self, template_name: &str, context: &serde_json::Value) -> Result<String, TemplateError>;
+    fn render(
+        &self,
+        template_name: &str,
+        context: &serde_json::Value,
+    ) -> Result<String, TemplateError>;
 }

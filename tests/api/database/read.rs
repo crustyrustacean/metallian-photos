@@ -48,7 +48,10 @@ async fn read_photo_endpoint_with_malformed_uuid_returns_400() {
 
     // Act
     let response = client
-        .get(&format!("{}/api/photos/{}", &app.address, "not-a-valid-uuid"))
+        .get(&format!(
+            "{}/api/photos/{}",
+            &app.address, "not-a-valid-uuid"
+        ))
         .send()
         .await
         .expect("Failed to execute request");

@@ -6,6 +6,7 @@ use crate::database::DatabaseBackend;
 use crate::routes::{api, frontend};
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
+use actix_files::Files;
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
 
@@ -69,6 +70,7 @@ async fn run(
             .wrap(TracingLogger::default())
             // frontend routes — browser-facing HTML pages
             .route("/", web::get().to(frontend::get_index_page))
+            .service(Files::new("/static", "static").prefer_utf8(true))
             // api routes — machine-facing JSON endpoints
             .service(
                 web::scope("/api")
