@@ -70,6 +70,8 @@ async fn run(
             .wrap(TracingLogger::default())
             // frontend routes — browser-facing HTML pages
             .route("/", web::get().to(frontend::get_index_page))
+            .route("/gallery", web::get().to(frontend::get_gallery_page))
+            .route("/upload", web::get().to(frontend::get_upload_page))
             .service(Files::new("/static", "static").prefer_utf8(true))
             // api routes — machine-facing JSON endpoints
             .service(

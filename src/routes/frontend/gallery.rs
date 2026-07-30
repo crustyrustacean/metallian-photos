@@ -1,4 +1,4 @@
-// src/routes/frontend/index.rs
+// src/routes/frontend/gallery.rs
 
 use crate::template::TemplateRenderer;
 use actix_web::{HttpResponse, web::Data};
@@ -12,16 +12,16 @@ struct PageContext<'a> {
 }
 
 /// GET /
-pub async fn get_index_page(templates: Data<Box<dyn TemplateRenderer>>) -> HttpResponse {
+pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>) -> HttpResponse {
     let context = PageContext {
-        title: "Home",
+        title: "Gallery",
         header: "R2 Photo API",
-        sub_header: "Landing Page"
+        sub_header: "Gallery Page"
     };
 
     let json_context = serde_json::to_value(&context).unwrap();
 
-    match templates.render("index.html", &json_context) {
+    match templates.render("gallery.html", &json_context) {
         Ok(html) => HttpResponse::Ok().content_type("text/html").body(html),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }

@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="/static/screen.css" media="screen">
-    <title>R2 Photo API | {{ title }}</title>
-</head>
-<body>
-    <header>
-        <h1>{{ header }}</h1>
-    </header>
-    <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.2/bundles/datastar.js"></script>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+    <article>
+        <h3>Instructions</h3>
+        <p>To use this site:
+            <ul>
+                <li>Click Upload to go to the page to upload a new photo</li>
+                <li>Click Gallery to see all the photos in this bucket.</li>
+            </ul>
+        </p>
+    </article>
+{% endblock content %}
