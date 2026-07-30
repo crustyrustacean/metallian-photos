@@ -43,3 +43,62 @@ pub trait StorageBackend: Send + Sync {
     async fn find(&self, id: Uuid) -> Result<Bytes, StorageError>;
     async fn save(&self, id: Uuid, bytes: Bytes) -> Result<(), StorageError>;
 }
+
+#[cfg(test)]
+pub mod contract {
+    //! Shared behavioral contract for any `StorageBackend` implementation.
+    //!
+    //! Each function exercises a guarantee that *every* backend must honor —
+    //! the in-memory fake today, a MinIO-backed OpenDAL impl later. Writing the
+    //! assertions once here avoids duplicate logic drifting across impls.
+
+    use super::*;
+
+    pub async fn save_then_find_round_trips<S: StorageBackend>(storage: &S) {
+        // Arrange — a fresh id and some arbitrary bytes
+        let id = Uuid::new_v4();
+        let bytes = Bytes::from_static(&[1, 2, 3, 4]);
+
+        // Act — save then read back
+        storage.save(id, bytes.clone()).await.unwrap();
+        let found = storage.find(id).await.unwrap();
+
+        // Assert — the bytes round-trip intact
+        assert_eq!(found, bytes);
+    }
+
+    pub async fn find_on_missing_id_returns_not_found<S: StorageBackend>(storage: &S) {
+        // Arrange — a fresh id that was never saved
+        let missing_id = Uuid::new_v4();
+
+        // Act — attempt to find it
+        let result = storage.find(missing_id).await;
+
+        // Assert — the backend reports NotFound, not a generic error
+        assert!(matches!(result, Err(StorageError::NotFound(_))));
+    }
+
+    pub async fn delete_removes_stored_bytes<S: StorageBackend>(storage: &S) {
+        // Arrange — save some bytes so there is something to delete
+        let id = Uuid::new_v4();
+        storage.save(id, Bytes::from_static(&[1])).await.unwrap();
+
+        // Act — delete, then attempt to find
+        storage.delete(id).await.unwrap();
+        let result = storage.find(id).await;
+
+        // Assert — the bytes are gone
+        assert!(matches!(result, Err(StorageError::NotFound(_))));
+    }
+
+    pub async fn delete_on_missing_id_is_idempotent<S: StorageBackend>(storage: &S) {
+        // Arrange — a fresh id that was never saved
+        let missing_id = Uuid::new_v4();
+
+        // Act — delete it anyway
+        let result = storage.delete(missing_id).await;
+
+        // Assert — the backend does not treat a missing key as an error
+        assert!(result.is_ok());
+    }
+}

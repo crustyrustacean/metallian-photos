@@ -86,9 +86,11 @@ pub async fn spawn_app() -> TestApp {
     test_app
 }
 
-/// Create a photo via the multipart `/photos` endpoint and return its id.
-/// Used as test setup by the read/update/delete tests, and exercised
-/// directly by the create test.
+/// Create a photo via the multipart `/api/photos` endpoint and return its id.
+///
+/// Sends 16 zero bytes as the file — EXIF parsing falls back to the default
+/// (all fields `None`). Used as test setup by the read/update/delete tests,
+/// and exercised directly by the create test.
 pub async fn create_photo(client: &reqwest::Client, address: &str) -> Uuid {
     let file_part = multipart::Part::bytes(vec![0u8; 16])
         .file_name("test.heic")
@@ -101,6 +103,35 @@ pub async fn create_photo(client: &reqwest::Client, address: &str) -> Uuid {
         .text("venue", "Best Ever")
         .part("file", file_part);
 
+    post_photo_form(client, address, form).await
+}
+
+/// Create a photo using the real HEIC fixture so that EXIF data is extracted
+/// and persisted. Returns the photo's id.
+pub async fn create_photo_with_fixture(client: &reqwest::Client, address: &str) -> Uuid {
+    let fixture = include_bytes!("../fixtures/IMG_2215.HEIC");
+
+    let file_part = multipart::Part::bytes(fixture.as_slice().to_vec())
+        .file_name("IMG_2215.HEIC")
+        .mime_str("image/heic")
+        .unwrap();
+
+    let form = multipart::Form::new()
+        .text("band", "The Band")
+        .text("tour", "Tour of Champions")
+        .text("venue", "Best Ever")
+        .part("file", file_part);
+
+    post_photo_form(client, address, form).await
+}
+
+/// Shared POST logic for both helpers — sends the multipart form and
+/// returns the created photo's id.
+async fn post_photo_form(
+    client: &reqwest::Client,
+    address: &str,
+    form: multipart::Form,
+) -> Uuid {
     let response = client
         .post(&format!("{}/api/photos", address))
         .multipart(form)

@@ -64,50 +64,31 @@ impl StorageBackend for InMemoryStorageBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::storage::contract;
 
-    // --- save / find ---
+    // Each test constructs the in-memory fake and delegates the assertions
+    // to the shared contract functions in `storage::contract`. The same
+    // contract functions will later exercise a MinIO-backed OpenDAL impl,
+    // so every backend is held to the same behavioral guarantees.
 
     #[tokio::test]
-    async fn save_then_find_round_trips_bytes() {
-        let store = InMemoryStorageBackend::new();
-        let id = Uuid::new_v4();
-        let bytes = Bytes::from_static(&[1, 2, 3, 4]);
-
-        store.save(id, bytes.clone()).await.unwrap();
-        let found = store.find(id).await.unwrap();
-
-        assert_eq!(found, bytes);
+    async fn in_memory_save_then_find_round_trips() {
+        contract::save_then_find_round_trips(&InMemoryStorageBackend::new()).await;
     }
 
     #[tokio::test]
-    async fn find_on_missing_id_returns_not_found() {
-        let store = InMemoryStorageBackend::new();
-        let result = store.find(Uuid::new_v4()).await;
-        assert!(matches!(result, Err(StorageError::NotFound(_))));
-    }
-
-    // --- delete ---
-
-    #[tokio::test]
-    async fn delete_removes_stored_bytes() {
-        let store = InMemoryStorageBackend::new();
-        let id = Uuid::new_v4();
-        store.save(id, Bytes::from_static(&[1])).await.unwrap();
-
-        store.delete(id).await.unwrap();
-
-        // after delete, the bytes are gone
-        let result = store.find(id).await;
-        assert!(matches!(result, Err(StorageError::NotFound(_))));
+    async fn in_memory_find_on_missing_id_returns_not_found() {
+        contract::find_on_missing_id_returns_not_found(&InMemoryStorageBackend::new()).await;
     }
 
     #[tokio::test]
-    async fn delete_on_missing_id_is_idempotent() {
-        // deleting an id that was never saved succeeds — matches the real
-        // (OpenDAL) backend, which is also idempotent.
-        let store = InMemoryStorageBackend::new();
-        let result = store.delete(Uuid::new_v4()).await;
-        assert!(result.is_ok());
+    async fn in_memory_delete_removes_stored_bytes() {
+        contract::delete_removes_stored_bytes(&InMemoryStorageBackend::new()).await;
+    }
+
+    #[tokio::test]
+    async fn in_memory_delete_on_missing_id_is_idempotent() {
+        contract::delete_on_missing_id_is_idempotent(&InMemoryStorageBackend::new()).await;
     }
 
     // NOTE on `save`: there is no meaningful unhappy path for the in-memory
