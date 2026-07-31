@@ -1,7 +1,7 @@
 // tests/api/create.rs
 
 // dependencies
-use crate::helpers::{create_photo, create_photo_with_fixture, spawn_app};
+use crate::helpers::{create_photo, spawn_app};
 use reqwest::multipart;
 use serde::Deserialize;
 use sqlx::FromRow;
@@ -81,13 +81,13 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
 }
 
 #[tokio::test]
-async fn create_photo_with_fixture_extracts_and_persists_exif_data() {
+async fn create_photo_extracts_and_persists_exif_data() {
     // Arrange
     let app = spawn_app().await;
     let client = reqwest::Client::new();
 
     // Act — create a photo using the real HEIC fixture, then read it back
-    let id = create_photo_with_fixture(&client, &app.address).await;
+    let id = create_photo(&client, &app.address).await;
 
     let response = client
         .get(&format!("{}/api/photos/{}", &app.address, id))

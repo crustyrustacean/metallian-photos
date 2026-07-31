@@ -1,5 +1,6 @@
 // src/routes/api/photos.rs
 
+use crate::conversion::convert_heic_to_jpeg;
 use crate::database::DatabaseBackend;
 use crate::domain::{Exif, Photo, UpdatePhoto};
 use crate::exif::{get_raw_exif, parse_exif};
@@ -38,6 +39,7 @@ pub async fn create_photo(
         Ok(raw) => parse_exif(&raw),
         Err(_) => Exif::default(),
     };
+    let jpeg_file_bytes = convert_heic_to_jpeg(&photo_file_bytes).map_err(e400)?.into();
     let photo = Photo {
         id,
         band: form.band.into_inner(),
@@ -47,7 +49,7 @@ pub async fn create_photo(
     };
 
     database.create(photo).await?;
-    storage.save(id, photo_file_bytes).await?;
+    storage.save(id, jpeg_file_bytes).await?;
 
     Ok(HttpResponse::Ok().json(id))
 }
