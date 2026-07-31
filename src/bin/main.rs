@@ -5,7 +5,7 @@ use r2_photo_api::configuration::get_configuration;
 use r2_photo_api::database::DatabaseBackend;
 use r2_photo_api::database::SqliteRepository;
 use r2_photo_api::startup::Application;
-use r2_photo_api::storage::OpendalStorageBackend;
+use r2_photo_api::storage::{InMemoryStorageBackend, OpendalStorageBackend};
 use r2_photo_api::storage::StorageBackend;
 use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
 use r2_photo_api::template::{TemplateRenderer, tera::TeraRenderer};
@@ -29,9 +29,14 @@ async fn main() -> anyhow::Result<()> {
     let database_backend: Box<dyn DatabaseBackend> =
         Box::new(SqliteRepository::new(&configuration.database).await?);
 
-    // build the storage backend
-    let storage_backend: Box<dyn StorageBackend> =
-        Box::new(OpendalStorageBackend::new(&configuration.storage)?);
+    // build the storage backend — selects the implementation based on the
+    // `storage.backend` config value: "memory" (default) for local dev,
+    // "r2" for production against Cloudflare R2.
+    let storage_backend: Box<dyn StorageBackend> = match configuration.storage.backend.as_str() {
+        "memory" => Box::new(InMemoryStorageBackend::new()),
+        "r2" => Box::new(OpendalStorageBackend::new(&configuration.storage)?),
+        other => panic!("Unknown storage backend: '{other}'. Use 'memory' or 'r2'."),
+    };
 
     // build the application by passing the configuration, database, and storage backends
     let application = Application::build(

@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-    <article>
-        <h3>Gallery</h3>
-        <p>Gallery page</p>
-    </article>
+    <h3>Gallery Page</h3>
+    <ul>
+        {% for photo in photos %}
+            <li>{{ loop.index }} {{ photo.band }} {{ photo.tour }} {{ photo.venue }}</li>
+        {% endfor %}
+    </ul>
+        
 {% endblock content %}

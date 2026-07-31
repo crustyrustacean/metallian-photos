@@ -11,18 +11,15 @@ struct PageContext<'a> {
     sub_header: &'a str,
 }
 
-/// GET /
-pub async fn get_index_page(templates: Data<Box<dyn TemplateRenderer>>) -> HttpResponse {
+pub async fn get_index_page(templates: Data<Box<dyn TemplateRenderer>>) -> Result<HttpResponse, actix_web::Error> {
     let context = PageContext {
         title: "Home",
         header: "R2 Photo API",
         sub_header: "Landing Page"
     };
 
-    let json_context = serde_json::to_value(&context).unwrap();
+    let json_context = serde_json::to_value(&context)?;
 
-    match templates.render("index.html", &json_context) {
-        Ok(html) => HttpResponse::Ok().content_type("text/html").body(html),
-        Err(_) => HttpResponse::InternalServerError().finish(),
-    }
+     let html = templates.render("index.html", &json_context)?;
+    Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }

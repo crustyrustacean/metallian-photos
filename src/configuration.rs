@@ -29,11 +29,17 @@ pub struct DatabaseSettings {
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct StorageSettings {
+    #[serde(default = "default_backend")]
+    pub backend: String,
     pub fs_root: String,
     pub r2_bucket: String,
     pub r2_endpoint: String,
     pub r2_access_key: SecretString,
     pub r2_secret_key: SecretString,
+}
+
+fn default_backend() -> String {
+    "memory".to_string()
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

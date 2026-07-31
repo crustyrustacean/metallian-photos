@@ -2,6 +2,17 @@
 {% block content %}
     <article>
         <h3>Upload</h3>
-        <p>Upload page</p>
+        <p>The Upload page</p>
     </article>
+    <form action="/api/photos" method="post" enctype="multipart/form-data">
+        <label for="band">Band</label>
+        <input id="band" name="band">
+        <label for="tour">Tour</label>
+        <input id="tour" name="tour">
+        <label for="venue">Venue</label>
+        <input id="venue" name="venue">
+        <label for="file">Photo</label>
+        <input type="file" id="file" name="file" accept="image/*">
+        <button type="submit">Upload</button>
+    </form>
 {% endblock content %}

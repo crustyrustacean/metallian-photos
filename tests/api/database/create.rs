@@ -13,8 +13,8 @@ struct StoredPhotoData {
     tour: String,
     venue: String,
 }
-
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct PhotoResponse {
     id: String,
     band: String,
