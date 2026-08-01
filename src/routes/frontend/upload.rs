@@ -73,6 +73,6 @@ pub async fn post_upload(
     .await?;
 
     Ok(HttpResponse::SeeOther()
-        .insert_header(("Location", "/gallery"))
+        .insert_header(("Location", "/gallery?status=success"))
         .finish())
 }

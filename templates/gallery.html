@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+    <div data-signals="{flash: new URLSearchParams(location.search).get('status') === 'success'}"
+         data-show="$flash"
+         data-on:click="$flash = false, history.replaceState({}, '', '/gallery')">
+        Photo uploaded successfully!
+    </div>
     <h3>Gallery Page</h3>
     {% if photos %}
     <ul>
