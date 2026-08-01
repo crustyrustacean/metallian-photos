@@ -1,10 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
     <h3>Gallery Page</h3>
+    {% if photos %}
     <ul>
         {% for photo in photos %}
-            <li>{{ loop.index }} {{ photo.band }} {{ photo.tour }} {{ photo.venue }}</li>
+            <li>
+                <img src="/api/photos/{{ photo.id }}/image" alt="{{ photo.band }} at {{ photo.venue }}" width="400">
+                <p>{{ loop.index }}. {{ photo.band }} — {{ photo.tour }} — {{ photo.venue }}</p>
+            </li>
         {% endfor %}
     </ul>
-        
+    {% else %}
+    <p>No photos yet. <a href="/upload">Upload one.</a></p>
+    {% endif %}
 {% endblock content %}

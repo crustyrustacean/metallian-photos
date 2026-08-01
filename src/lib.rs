@@ -7,6 +7,7 @@ pub mod database;
 pub mod domain;
 pub mod exif;
 pub mod routes;
+pub mod services;
 pub mod startup;
 pub mod storage;
 pub mod telemetry;

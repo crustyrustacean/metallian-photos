@@ -72,6 +72,7 @@ async fn run(
             .route("/", web::get().to(frontend::get_index_page))
             .route("/gallery", web::get().to(frontend::get_gallery_page))
             .route("/upload", web::get().to(frontend::get_upload_page))
+            .route("/upload", web::post().to(frontend::post_upload))
             .service(Files::new("/static", "static").prefer_utf8(true))
             // api routes — machine-facing JSON endpoints
             .service(
@@ -79,6 +80,7 @@ async fn run(
                     .route("/health_check", web::get().to(api::health_check))
                     .route("/photos", web::post().to(api::create_photo))
                     .route("/photos/{id}", web::get().to(api::read_photo))
+                    .route("/photos/{id}/image", web::get().to(api::get_photo_image))
                     .route("/photos/{id}", web::put().to(api::update_photo))
                     .route("/photos/{id}", web::delete().to(api::delete_photo)),
             )

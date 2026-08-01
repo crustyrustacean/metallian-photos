@@ -1,9 +1,8 @@
 // src/routes/api/photos.rs
 
-use crate::conversion::convert_heic_to_jpeg;
 use crate::database::DatabaseBackend;
-use crate::domain::{Exif, Photo, UpdatePhoto};
-use crate::exif::{get_raw_exif, parse_exif};
+use crate::domain::UpdatePhoto;
+use crate::services::create_photo_from_bytes;
 use crate::storage::StorageBackend;
 use crate::utils::e400;
 use actix_multipart::form::{MultipartForm, tempfile::TempFile, text::Text};
@@ -28,28 +27,22 @@ pub async fn create_photo(
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let id = Uuid::new_v4();
     let photo_file = form
         .photo_file
         .into_iter()
         .next()
         .ok_or_else(|| e400("a file upload is required"))?;
     let photo_file_bytes = fs::read(photo_file.file.path()).map_err(e400)?.into();
-    let exif_data = match get_raw_exif(&photo_file_bytes) {
-        Ok(raw) => parse_exif(&raw),
-        Err(_) => Exif::default(),
-    };
-    let jpeg_file_bytes = convert_heic_to_jpeg(&photo_file_bytes).map_err(e400)?.into();
-    let photo = Photo {
-        id,
-        band: form.band.into_inner(),
-        tour: form.tour.into_inner(),
-        venue: form.venue.into_inner(),
-        exif_data,
-    };
 
-    database.create(photo).await?;
-    storage.save(id, jpeg_file_bytes).await?;
+    let id = create_photo_from_bytes(
+        photo_file_bytes,
+        form.band.into_inner(),
+        form.tour.into_inner(),
+        form.venue.into_inner(),
+        database.as_ref().as_ref(),
+        storage.as_ref().as_ref(),
+    )
+    .await?;
 
     Ok(HttpResponse::Ok().json(id))
 }
@@ -64,6 +57,20 @@ pub async fn read_photo(
     let photo = database.read(id).await?;
 
     Ok(HttpResponse::Ok().json(photo))
+}
+
+/// GET /api/photos/{id}/image
+///
+/// Serves the stored JPEG bytes for a photo. This is the public read endpoint
+/// that the gallery `<img>` tags and the blog will both pull from.
+pub async fn get_photo_image(
+    path: Path<String>,
+    storage: Data<Box<dyn StorageBackend>>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
+    let bytes = storage.find(id).await?;
+
+    Ok(HttpResponse::Ok().content_type("image/jpeg").body(bytes))
 }
 
 /// PUT /api/photos/{id}
