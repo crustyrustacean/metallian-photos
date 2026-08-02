@@ -3,7 +3,7 @@ application:
 database:
   path: "metallian-photos.db"
 storage:
-  fs_root: "."
+  fs_root: ""
   r2_bucket: ""
   r2_endpoint: ""
   r2_access_key: ""
