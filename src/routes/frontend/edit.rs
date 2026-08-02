@@ -51,7 +51,7 @@ pub async fn edit_photo(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     templates: Data<Box<dyn TemplateRenderer>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
@@ -76,7 +76,7 @@ pub async fn update_photo(
     ReadSignals(updates): ReadSignals<UpdatePhoto>,
     database: Data<Box<dyn DatabaseBackend>>,
     templates: Data<Box<dyn TemplateRenderer>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
@@ -102,7 +102,7 @@ pub async fn cancel_edit(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     templates: Data<Box<dyn TemplateRenderer>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;

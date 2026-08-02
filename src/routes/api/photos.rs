@@ -28,7 +28,7 @@ pub async fn create_photo(
     MultipartForm(form): MultipartForm<CreatePhotoForm>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let photo_file = form
@@ -82,7 +82,7 @@ pub async fn update_photo(
     path: Path<String>,
     form: Form<UpdatePhoto>,
     database: Data<Box<dyn DatabaseBackend>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
@@ -103,7 +103,7 @@ pub async fn delete_photo(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;

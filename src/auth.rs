@@ -10,10 +10,10 @@ use serde::Serialize;
 
 /// Check if the current request is authenticated. Returns Ok(()) if logged in,
 /// or Err with a redirect to /login if not. Call this at the top of admin handlers.
-pub fn require_login(identity: &Identity) -> Result<(), actix_web::Error> {
-    match identity.id() {
-        Ok(_) => Ok(()),
-        Err(_) => Err(RedirectToLogin.into()),
+pub fn require_login(identity: &Option<Identity>) -> Result<(), actix_web::Error> {
+    match identity {
+        Some(id) if id.id().is_ok() => Ok(()),
+        _ => Err(RedirectToLogin.into()),
     }
 }
 

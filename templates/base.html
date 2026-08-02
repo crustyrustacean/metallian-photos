@@ -16,9 +16,11 @@
     </header>
     <nav>
         <a href="/">Home</a>
+        {% if logged_in %}
         <a href="/upload">Upload</a>
-        <a href="/galleries">Galleries</a>
         <a href="/gallery">Gallery</a>
+        {% endif %}
+        <a href="/galleries">Galleries</a>
         {% if logged_in %}
         <a href="/logout">Logout</a>
         {% else %}

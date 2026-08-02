@@ -25,7 +25,7 @@ struct PageContext<'a> {
 /// GET /upload — render the upload form.
 pub async fn get_upload_page(
     templates: Data<Box<dyn TemplateRenderer>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let context = PageContext {
@@ -60,7 +60,7 @@ pub async fn post_upload(
     MultipartForm(form): MultipartForm<UploadForm>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let photo_file = form

@@ -17,7 +17,7 @@ struct PageContext<'a> {
     photos: Vec<Photo>,
 }
 
-pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>, database: Data<Box<dyn DatabaseBackend>>, identity: Identity) -> Result<HttpResponse, actix_web::Error> {
+pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>, database: Data<Box<dyn DatabaseBackend>>, identity: Option<Identity>) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let logged_in = true;
     let photos = database.list().await?;

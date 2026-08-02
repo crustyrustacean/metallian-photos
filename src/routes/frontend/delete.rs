@@ -17,7 +17,7 @@ pub async fn delete_photo(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
-    identity: Identity,
+    identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
