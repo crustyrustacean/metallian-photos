@@ -56,7 +56,7 @@ async fn upload_redirects_to_gallery_and_persists_photo() {
 
     // Assert — 303 See Other redirect to /gallery
     assert_eq!(response.status().as_u16(), 303);
-    assert_eq!(response.headers().get("LOCATION").unwrap(), "/gallery");
+    assert_eq!(response.headers().get("LOCATION").unwrap(), "/gallery?status=success");
 
     // The photo was persisted through the shared save pipeline.
     let photos = app

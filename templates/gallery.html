@@ -2,16 +2,18 @@
 {% block content %}
     <div data-signals="{flash: new URLSearchParams(location.search).get('status') === 'success'}"
          data-show="$flash"
-         data-on:click="$flash = false, history.replaceState({}, '', '/gallery')">
+         data-on:click="$flash = false, history.replaceState({}, '', '/gallery')"
+         data-effect="$flash ? setTimeout(() => { $flash = false; history.replaceState({}, '', '/gallery') }, 3000) : null">
         Photo uploaded successfully!
     </div>
     <h3>Gallery Page</h3>
     {% if photos %}
     <ul>
         {% for photo in photos %}
-            <li>
+            <li id="photo-{{ photo.id }}">
                 <img src="/api/photos/{{ photo.id }}/image" alt="{{ photo.band }} at {{ photo.venue }}" width="400">
                 <p>{{ loop.index }}. {{ photo.band }} — {{ photo.tour }} — {{ photo.venue }}</p>
+                <button data-on:click="@delete('/gallery/{{ photo.id }}')">Delete</button>
             </li>
         {% endfor %}
     </ul>

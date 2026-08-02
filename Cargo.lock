@@ -973,6 +973,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "datastar"
+version = "0.3.2"
+source = "git+https://github.com/crustyrustacean/datastar-rust.git?branch=feat%2Factix-adapter#32b8615725b0a92c8dbfc1e649ced410b731c219"
+dependencies = [
+ "actix-web",
+ "bytes",
+ "chrono",
+ "futures-util",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "defmt"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2886,7 +2899,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "r2-photo-api"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "actix-files",
  "actix-multipart",
@@ -2896,6 +2909,7 @@ dependencies = [
  "bytes",
  "chrono",
  "config",
+ "datastar",
  "dotenvy",
  "heic",
  "image",
