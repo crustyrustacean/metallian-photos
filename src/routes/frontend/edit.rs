@@ -11,10 +11,12 @@
 // HTML attribute layer — the class of injection bug that raw format!()
 // strings are vulnerable to.
 
+use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::domain::UpdatePhoto;
 use crate::template::TemplateRenderer;
 use crate::utils::e400;
+use actix_identity::Identity;
 use actix_web::web::{Data, Path};
 use datastar::actix::{ReadSignals, Sse};
 use datastar::prelude::PatchElements;
@@ -49,7 +51,9 @@ pub async fn edit_photo(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     templates: Data<Box<dyn TemplateRenderer>>,
+    identity: Identity,
 ) -> Result<Sse, actix_web::Error> {
+    require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let photo = database.read(id).await?;
 
@@ -72,7 +76,9 @@ pub async fn update_photo(
     ReadSignals(updates): ReadSignals<UpdatePhoto>,
     database: Data<Box<dyn DatabaseBackend>>,
     templates: Data<Box<dyn TemplateRenderer>>,
+    identity: Identity,
 ) -> Result<Sse, actix_web::Error> {
+    require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
 
     database.update(id, updates).await?;
@@ -96,7 +102,9 @@ pub async fn cancel_edit(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     templates: Data<Box<dyn TemplateRenderer>>,
+    identity: Identity,
 ) -> Result<Sse, actix_web::Error> {
+    require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let photo = database.read(id).await?;
 

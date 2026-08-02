@@ -1,17 +1,18 @@
 // tests/api/gallery_edit.rs
 
-use crate::helpers::{create_photo, spawn_app};
+use crate::helpers::{create_photo, login, spawn_app};
 use metallian_photos::database::DatabaseBackend;
 
 #[tokio::test]
 async fn edit_returns_form_with_current_metadata() {
     // Arrange
     let app = spawn_app().await;
-    let id = create_photo(&app.api_client, &app.address).await;
+    login(&app).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     // Act — GET the edit form
     let response = app
-        .api_client
+        .admin_client
         .get(&format!("{}/gallery/{}/edit", &app.address, id))
         .send()
         .await
@@ -35,7 +36,8 @@ async fn edit_returns_form_with_current_metadata() {
 async fn update_saves_changes_and_returns_caption() {
     // Arrange
     let app = spawn_app().await;
-    let id = create_photo(&app.api_client, &app.address).await;
+    login(&app).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     // Act — PUT with updated metadata as Datastar JSON signals.
     // Datastar sends all signals in the JSON body for non-GET requests.
@@ -47,7 +49,7 @@ async fn update_saves_changes_and_returns_caption() {
     });
 
     let response = app
-        .api_client
+        .admin_client
         .put(&format!("{}/gallery/{}", &app.address, id))
         .header("Content-Type", "application/json")
         .json(&signals)
@@ -74,11 +76,12 @@ async fn update_saves_changes_and_returns_caption() {
 async fn cancel_returns_original_caption_without_saving() {
     // Arrange
     let app = spawn_app().await;
-    let id = create_photo(&app.api_client, &app.address).await;
+    login(&app).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     // Act — GET the cancel endpoint
     let response = app
-        .api_client
+        .admin_client
         .get(&format!("{}/gallery/{}/cancel", &app.address, id))
         .send()
         .await

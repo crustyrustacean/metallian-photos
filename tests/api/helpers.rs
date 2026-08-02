@@ -31,6 +31,8 @@ pub struct TestApp {
     pub address: String,
     pub port: u16,
     pub api_client: reqwest::Client,
+    /// A client with cookies enabled — needed for authenticated admin routes.
+    pub admin_client: reqwest::Client,
     pub database: SqliteRepository,
 }
 
@@ -43,6 +45,8 @@ pub async fn spawn_app() -> TestApp {
         c.application.port = 0;
         c.database.path = ":memory:".to_string();
         c.database.max_connections = Some(1);
+        c.admin.username = "testadmin".to_string();
+        c.admin.password = "testpassword".to_string();
 
         c
     };
@@ -81,10 +85,19 @@ pub async fn spawn_app() -> TestApp {
         .build()
         .unwrap();
 
+    // Build a cookie-aware client for admin routes (follows redirects,
+    // stores the session cookie after login).
+    let admin_client = reqwest::Client::builder()
+        .cookie_store(true)
+        .redirect(reqwest::redirect::Policy::default())
+        .build()
+        .unwrap();
+
     let test_app = TestApp {
         address: format!("http://localhost:{}", application_port),
         port: application_port,
         api_client: client,
+        admin_client,
         database: database_for_test,
     };
 
@@ -133,4 +146,15 @@ async fn post_photo_form(client: &reqwest::Client, address: &str, form: multipar
         .json()
         .await
         .expect("Unable to obtain response body.")
+}
+
+/// Log in via the admin client to obtain a session cookie.
+/// Call this before hitting any admin route.
+pub async fn login(app: &TestApp) {
+    app.admin_client
+        .post(&format!("{}/login", app.address))
+        .form(&[("username", "testadmin"), ("password", "testpassword")])
+        .send()
+        .await
+        .expect("Failed to log in");
 }

@@ -1,10 +1,12 @@
 // src/routes/frontend/upload.rs
 
+use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::services::create_photo_from_bytes;
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
 use crate::utils::e400;
+use actix_identity::Identity;
 use actix_multipart::form::{MultipartForm, tempfile::TempFile, text::Text};
 use actix_web::HttpResponse;
 
@@ -22,7 +24,9 @@ struct PageContext<'a> {
 /// GET /upload — render the upload form.
 pub async fn get_upload_page(
     templates: Data<Box<dyn TemplateRenderer>>,
+    identity: Identity,
 ) -> Result<HttpResponse, actix_web::Error> {
+    require_login(&identity)?;
     let context = PageContext {
         title: "Upload",
         header: "Metallian Photos",
@@ -54,7 +58,9 @@ pub async fn post_upload(
     MultipartForm(form): MultipartForm<UploadForm>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
+    identity: Identity,
 ) -> Result<HttpResponse, actix_web::Error> {
+    require_login(&identity)?;
     let photo_file = form
         .photo_file
         .into_iter()

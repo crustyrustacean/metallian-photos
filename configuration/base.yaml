@@ -8,3 +8,6 @@ storage:
   r2_endpoint: ""
   r2_access_key: ""
   r2_secret_key: ""
+admin:
+  username: ""
+  password: ""

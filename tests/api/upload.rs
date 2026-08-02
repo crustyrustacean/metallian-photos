@@ -1,6 +1,6 @@
 // tests/api/upload.rs
 
-use crate::helpers::spawn_app;
+use crate::helpers::{login, spawn_app};
 use metallian_photos::database::DatabaseBackend;
 use reqwest::multipart;
 
@@ -8,7 +8,7 @@ use reqwest::multipart;
 async fn upload_form_returns_400_for_missing_file() {
     // Arrange
     let app = spawn_app().await;
-
+    login(&app).await;
     let form = multipart::Form::new()
         .text("band", "The Band")
         .text("tour", "Tour of Champions")
@@ -16,7 +16,7 @@ async fn upload_form_returns_400_for_missing_file() {
 
     // Act
     let response = app
-        .api_client
+        .admin_client
         .post(&format!("{}/upload", &app.address))
         .multipart(form)
         .send()
@@ -31,7 +31,7 @@ async fn upload_form_returns_400_for_missing_file() {
 async fn upload_redirects_to_gallery_and_persists_photo() {
     // Arrange
     let app = spawn_app().await;
-
+    login(&app).await;
     let fixture = include_bytes!("../fixtures/IMG_2215.HEIC");
     let file_part = multipart::Part::bytes(fixture.as_slice().to_vec())
         .file_name("IMG_2215.HEIC")
@@ -44,10 +44,26 @@ async fn upload_redirects_to_gallery_and_persists_photo() {
         .text("venue", "Best Ever")
         .part("file", file_part);
 
-    // Act — POST to the browser upload endpoint. The test client has
-    // redirects disabled, so we observe the raw 303 rather than following it.
-    let response = app
-        .api_client
+    // Act — POST to the browser upload endpoint. Use the no-redirect
+    // client with the session cookie manually attached.
+    // We can't use admin_client (follows redirects → sees 200 not 303).
+    // Instead, extract the cookie from admin_client's jar isn't directly
+    // possible, so we log in via api_client's cookie store... but api_client
+    // doesn't have one. Simplest: build a dedicated no-redirect cookie client.
+    let noredirect_client = reqwest::Client::builder()
+        .cookie_store(true)
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+    // Log in with this client too
+    noredirect_client
+        .post(&format!("{}/login", &app.address))
+        .form(&[("username", "testadmin"), ("password", "testpassword")])
+        .send()
+        .await
+        .expect("Failed to log in");
+
+    let response = noredirect_client
         .post(&format!("{}/upload", &app.address))
         .multipart(form)
         .send()

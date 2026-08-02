@@ -1,7 +1,7 @@
 // tests/api/create.rs
 
 // dependencies
-use crate::helpers::{create_photo, spawn_app};
+use crate::helpers::{create_photo, login, spawn_app};
 use reqwest::multipart;
 use serde::Deserialize;
 use sqlx::FromRow;
@@ -36,10 +36,10 @@ struct ExifData {
 async fn create_photo_endpoint_returns_200_ok_and_id() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     // Act
-    let id = create_photo(&client, &app.address).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     // Assert — the photo is persisted with the submitted metadata
     let id_string = id.to_string();
@@ -61,7 +61,7 @@ async fn create_photo_endpoint_returns_200_ok_and_id() {
 async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     let form = multipart::Form::new()
         .text("band", "The Band")
@@ -69,7 +69,7 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
         .text("venue", "Best Ever");
 
     // Act
-    let response = client
+    let response = app.admin_client
         .post(&format!("{}/api/photos", &app.address))
         .multipart(form)
         .send()
@@ -84,12 +84,12 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
 async fn create_photo_extracts_and_persists_exif_data() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     // Act — create a photo using the real HEIC fixture, then read it back
-    let id = create_photo(&client, &app.address).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
-    let response = client
+    let response = app.admin_client
         .get(&format!("{}/api/photos/{}", &app.address, id))
         .send()
         .await

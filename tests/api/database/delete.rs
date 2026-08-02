@@ -1,18 +1,18 @@
 // tests/api/delete.rs
 
 // dependencies
-use crate::helpers::{create_photo, spawn_app};
+use crate::helpers::{create_photo, login, spawn_app};
 
 #[tokio::test]
 async fn delete_photo_endpoint_returns_204_no_content() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
-    let id = create_photo(&client, &app.address).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     // Act
-    let response = client
+    let response = app.admin_client
         .delete(&format!("{}/api/photos/{}", &app.address, id))
         .send()
         .await
@@ -27,10 +27,10 @@ async fn delete_photo_endpoint_returns_204_no_content() {
 async fn delete_photo_endpoint_with_malformed_uuid_returns_400() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     // Act
-    let response = client
+    let response = app.admin_client
         .delete(&format!(
             "{}/api/photos/{}",
             &app.address, "not-a-valid-uuid"

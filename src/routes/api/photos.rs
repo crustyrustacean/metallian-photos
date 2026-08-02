@@ -1,11 +1,13 @@
 // src/routes/api/photos.rs
 
+use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::domain::UpdatePhoto;
 use crate::services::create_photo_from_bytes;
 use crate::storage::StorageBackend;
 use crate::utils::e400;
 use actix_multipart::form::{MultipartForm, tempfile::TempFile, text::Text};
+use actix_identity::Identity;
 use actix_web::HttpResponse;
 use actix_web::http::StatusCode;
 use actix_web::web::{Data, Form, Path};
@@ -26,7 +28,9 @@ pub async fn create_photo(
     MultipartForm(form): MultipartForm<CreatePhotoForm>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
+    identity: Identity,
 ) -> Result<HttpResponse, actix_web::Error> {
+    require_login(&identity)?;
     let photo_file = form
         .photo_file
         .into_iter()
@@ -78,7 +82,9 @@ pub async fn update_photo(
     path: Path<String>,
     form: Form<UpdatePhoto>,
     database: Data<Box<dyn DatabaseBackend>>,
+    identity: Identity,
 ) -> Result<HttpResponse, actix_web::Error> {
+    require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let Form(form_data) = form;
     let updated_photo = UpdatePhoto {
@@ -97,7 +103,9 @@ pub async fn delete_photo(
     path: Path<String>,
     database: Data<Box<dyn DatabaseBackend>>,
     storage: Data<Box<dyn StorageBackend>>,
+    identity: Identity,
 ) -> Result<HttpResponse, actix_web::Error> {
+    require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     storage.delete(id).await?;
     database.delete(id).await?;

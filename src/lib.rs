@@ -1,6 +1,7 @@
 // src/lib.rs
 
 // module declarations
+pub mod auth;
 pub mod configuration;
 pub mod conversion;
 pub mod database;

@@ -1,7 +1,7 @@
 // tests/api/read.rs
 
 // dependencies
-use crate::helpers::{create_photo, spawn_app};
+use crate::helpers::{create_photo, login, spawn_app};
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -17,12 +17,12 @@ struct StoredPhotoData {
 async fn read_photo_endpoint_returns_200_ok_and_a_single_photo() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
-    let id: Uuid = create_photo(&client, &app.address).await;
+    let id: Uuid = create_photo(&app.admin_client, &app.address).await;
 
     // Act
-    let response = client
+    let response = reqwest::Client::new()
         .get(&format!("{}/api/photos/{}", &app.address, id))
         .send()
         .await
@@ -44,10 +44,10 @@ async fn read_photo_endpoint_returns_200_ok_and_a_single_photo() {
 async fn read_photo_endpoint_with_malformed_uuid_returns_400() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     // Act
-    let response = client
+    let response = reqwest::Client::new()
         .get(&format!(
             "{}/api/photos/{}",
             &app.address, "not-a-valid-uuid"
@@ -64,12 +64,12 @@ async fn read_photo_endpoint_with_malformed_uuid_returns_400() {
 async fn read_photo_endpoint_with_unknown_uuid_returns_404() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     let missing_id = Uuid::new_v4();
 
     // Act
-    let response = client
+    let response = reqwest::Client::new()
         .get(&format!("{}/api/photos/{}", &app.address, missing_id))
         .send()
         .await
@@ -83,12 +83,12 @@ async fn read_photo_endpoint_with_unknown_uuid_returns_404() {
 async fn get_photo_image_returns_jpeg_bytes() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
-    let id: Uuid = create_photo(&client, &app.address).await;
+    let id: Uuid = create_photo(&app.admin_client, &app.address).await;
 
     // Act
-    let response = client
+    let response = reqwest::Client::new()
         .get(&format!("{}/api/photos/{}/image", &app.address, id))
         .send()
         .await
@@ -111,12 +111,12 @@ async fn get_photo_image_returns_jpeg_bytes() {
 async fn get_photo_image_with_unknown_uuid_returns_404() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     let missing_id = Uuid::new_v4();
 
     // Act
-    let response = client
+    let response = reqwest::Client::new()
         .get(&format!("{}/api/photos/{}/image", &app.address, missing_id))
         .send()
         .await

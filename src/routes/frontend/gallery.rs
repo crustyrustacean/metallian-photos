@@ -1,8 +1,10 @@
 // src/routes/frontend/gallery.rs
 
+use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::domain::Photo;
 use crate::template::TemplateRenderer;
+use actix_identity::Identity;
 use actix_web::{HttpResponse, web::Data};
 use serde::Serialize;
 
@@ -14,7 +16,8 @@ struct PageContext<'a> {
     photos: Vec<Photo>,
 }
 
-pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>, database: Data<Box<dyn DatabaseBackend>>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>, database: Data<Box<dyn DatabaseBackend>>, identity: Identity) -> Result<HttpResponse, actix_web::Error> {
+    require_login(&identity)?;
     let photos = database.list().await?;
     
     let context = PageContext {

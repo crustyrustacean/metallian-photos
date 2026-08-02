@@ -1,7 +1,7 @@
 // tests/api/update.rs
 
 // dependencies
-use crate::helpers::{create_photo, spawn_app};
+use crate::helpers::{create_photo, login, spawn_app};
 use serde::Serialize;
 use sqlx::FromRow;
 
@@ -25,9 +25,9 @@ struct UpdatePhotoData {
 async fn update_photo_endpoint_updates_photo_and_returns_200_ok() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
-    let id = create_photo(&client, &app.address).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     let updated_photo_data = UpdatePhotoData {
         band: "The Real Band".to_string(),
@@ -36,7 +36,7 @@ async fn update_photo_endpoint_updates_photo_and_returns_200_ok() {
     };
 
     // Act — the update endpoint takes urlencoded form data
-    let response = client
+    let response = app.admin_client
         .put(&format!("{}/api/photos/{}", &app.address, id))
         .form(&updated_photo_data)
         .send()
@@ -62,7 +62,7 @@ async fn update_photo_endpoint_updates_photo_and_returns_200_ok() {
 async fn update_photo_endpoint_with_malformed_uuid_returns_400() {
     // Arrange
     let app = spawn_app().await;
-    let client = reqwest::Client::new();
+    login(&app).await;
 
     let updated_photo_data = UpdatePhotoData {
         band: "The Real Band".to_string(),
@@ -71,7 +71,7 @@ async fn update_photo_endpoint_with_malformed_uuid_returns_400() {
     };
 
     // Act
-    let response = client
+    let response = app.admin_client
         .put(&format!(
             "{}/api/photos/{}",
             &app.address, "not-a-valid-uuid"

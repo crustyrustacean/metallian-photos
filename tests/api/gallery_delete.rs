@@ -1,17 +1,18 @@
 // tests/api/gallery_delete.rs
 
-use crate::helpers::{create_photo, spawn_app};
+use crate::helpers::{create_photo, login, spawn_app};
 use metallian_photos::database::DatabaseBackend;
 
 #[tokio::test]
 async fn gallery_delete_removes_photo_and_returns_sse() {
     // Arrange
     let app = spawn_app().await;
-    let id = create_photo(&app.api_client, &app.address).await;
+    login(&app).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
 
     // Act — DELETE via the frontend Datastar endpoint
     let response = app
-        .api_client
+        .admin_client
         .delete(&format!("{}/gallery/{}", &app.address, id))
         .send()
         .await
