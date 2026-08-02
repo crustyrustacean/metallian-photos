@@ -69,7 +69,8 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
         .text("venue", "Best Ever");
 
     // Act
-    let response = app.admin_client
+    let response = app
+        .admin_client
         .post(&format!("{}/api/photos", &app.address))
         .multipart(form)
         .send()
@@ -89,7 +90,8 @@ async fn create_photo_extracts_and_persists_exif_data() {
     // Act — create a photo using the real HEIC fixture, then read it back
     let id = create_photo(&app.admin_client, &app.address).await;
 
-    let response = app.admin_client
+    let response = app
+        .admin_client
         .get(&format!("{}/api/photos/{}", &app.address, id))
         .send()
         .await

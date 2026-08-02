@@ -5,8 +5,8 @@ use metallian_photos::configuration::get_configuration;
 use metallian_photos::database::DatabaseBackend;
 use metallian_photos::database::SqliteRepository;
 use metallian_photos::startup::Application;
-use metallian_photos::storage::{InMemoryStorageBackend, OpendalStorageBackend};
 use metallian_photos::storage::StorageBackend;
+use metallian_photos::storage::{InMemoryStorageBackend, OpendalStorageBackend};
 use metallian_photos::telemetry::{get_subscriber, init_subscriber};
 use metallian_photos::template::{TemplateRenderer, tera::TeraRenderer};
 

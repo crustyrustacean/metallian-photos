@@ -11,8 +11,8 @@ use actix_cors::Cors;
 use actix_files::Files;
 use actix_identity::IdentityMiddleware;
 use actix_session::{SessionMiddleware, storage::CookieSessionStore};
-use actix_web::dev::Server;
 use actix_web::cookie::Key;
+use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
 
 use std::net::TcpListener;
@@ -96,10 +96,7 @@ async fn run(
                 CookieSessionStore::default(),
                 session_key.clone(),
             ))
-            .wrap(
-                Cors::permissive()
-                    .allowed_methods(["GET", "POST", "PUT", "DELETE"]),
-            )
+            .wrap(Cors::permissive().allowed_methods(["GET", "POST", "PUT", "DELETE"]))
             // --- public routes (no auth required) ---
             .route("/", web::get().to(frontend::get_index_page))
             .route("/galleries", web::get().to(frontend::get_galleries_index))
@@ -110,34 +107,13 @@ async fn run(
             .route("/login", web::post().to(auth::post_login))
             .route("/logout", web::get().to(auth::get_logout))
             // --- admin routes (auth required) ---
-            .route(
-                "/gallery",
-                web::get().to(frontend::get_gallery_page),
-            )
-            .route(
-                "/upload",
-                web::get().to(frontend::get_upload_page),
-            )
-            .route(
-                "/upload",
-                web::post().to(frontend::post_upload),
-            )
-            .route(
-                "/gallery/{id}",
-                web::delete().to(frontend::delete_photo),
-            )
-            .route(
-                "/gallery/{id}/edit",
-                web::get().to(frontend::edit_photo),
-            )
-            .route(
-                "/gallery/{id}",
-                web::put().to(frontend::update_photo),
-            )
-            .route(
-                "/gallery/{id}/cancel",
-                web::get().to(frontend::cancel_edit),
-            )
+            .route("/gallery", web::get().to(frontend::get_gallery_page))
+            .route("/upload", web::get().to(frontend::get_upload_page))
+            .route("/upload", web::post().to(frontend::post_upload))
+            .route("/gallery/{id}", web::delete().to(frontend::delete_photo))
+            .route("/gallery/{id}/edit", web::get().to(frontend::edit_photo))
+            .route("/gallery/{id}", web::put().to(frontend::update_photo))
+            .route("/gallery/{id}/cancel", web::get().to(frontend::cancel_edit))
             // --- api routes ---
             // Public reads (blog fetches these):
             .service(
@@ -145,17 +121,11 @@ async fn run(
                     .route("/health_check", web::get().to(api::health_check))
                     .route("/galleries", web::get().to(api::list_galleries))
                     .route("/photos/{id}", web::get().to(api::read_photo))
-                    .route(
-                        "/photos/{id}/image",
-                        web::get().to(api::get_photo_image),
-                    )
+                    .route("/photos/{id}/image", web::get().to(api::get_photo_image))
                     // Writes (admin only — identity checked in handler):
                     .route("/photos", web::post().to(api::create_photo))
                     .route("/photos/{id}", web::put().to(api::update_photo))
-                    .route(
-                        "/photos/{id}",
-                        web::delete().to(api::delete_photo),
-                    ),
+                    .route("/photos/{id}", web::delete().to(api::delete_photo)),
             )
             // --- catch-all 404 ---
             .default_service(web::to(frontend::not_found))

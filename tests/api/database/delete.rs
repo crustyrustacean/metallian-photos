@@ -12,7 +12,8 @@ async fn delete_photo_endpoint_returns_204_no_content() {
     let id = create_photo(&app.admin_client, &app.address).await;
 
     // Act
-    let response = app.admin_client
+    let response = app
+        .admin_client
         .delete(&format!("{}/api/photos/{}", &app.address, id))
         .send()
         .await
@@ -30,7 +31,8 @@ async fn delete_photo_endpoint_with_malformed_uuid_returns_400() {
     login(&app).await;
 
     // Act
-    let response = app.admin_client
+    let response = app
+        .admin_client
         .delete(&format!(
             "{}/api/photos/{}",
             &app.address, "not-a-valid-uuid"

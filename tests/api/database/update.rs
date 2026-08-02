@@ -36,7 +36,8 @@ async fn update_photo_endpoint_updates_photo_and_returns_200_ok() {
     };
 
     // Act — the update endpoint takes urlencoded form data
-    let response = app.admin_client
+    let response = app
+        .admin_client
         .put(&format!("{}/api/photos/{}", &app.address, id))
         .form(&updated_photo_data)
         .send()
@@ -71,7 +72,8 @@ async fn update_photo_endpoint_with_malformed_uuid_returns_400() {
     };
 
     // Act
-    let response = app.admin_client
+    let response = app
+        .admin_client
         .put(&format!(
             "{}/api/photos/{}",
             &app.address, "not-a-valid-uuid"

@@ -175,13 +175,12 @@ impl DatabaseBackend for SqliteRepository {
     }
 
     async fn list_photos_by_band(&self, band: &str) -> Result<Vec<Photo>, DatabaseError> {
-        let rows: Vec<PhotoRow> = sqlx::query_as::<_, PhotoRow>(
-            "SELECT * FROM photos WHERE band = ? ORDER BY rowid ASC",
-        )
-        .bind(band)
-        .fetch_all(&self.pool)
-        .await
-        .context("Failed to list photos by band.")?;
+        let rows: Vec<PhotoRow> =
+            sqlx::query_as::<_, PhotoRow>("SELECT * FROM photos WHERE band = ? ORDER BY rowid ASC")
+                .bind(band)
+                .fetch_all(&self.pool)
+                .await
+                .context("Failed to list photos by band.")?;
 
         Ok(rows.into_iter().map(Photo::from).collect())
     }
@@ -321,7 +320,7 @@ mod tests {
     #[tokio::test]
     async fn list_returns_empty_for_no_photos() {
         let db = test_repo().await;
-        
+
         let photos = db.list().await.unwrap();
         assert!(photos.is_empty());
     }
@@ -331,7 +330,7 @@ mod tests {
         let db = test_repo().await;
         db.create(sample_photo(Uuid::new_v4())).await.unwrap();
         db.create(sample_photo(Uuid::new_v4())).await.unwrap();
-        
+
         let photos = db.list().await.unwrap();
         assert_eq!(photos.len(), 2);
         assert_eq!(photos[0].band, "The Band");

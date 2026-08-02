@@ -32,7 +32,9 @@ pub async fn not_found(
     };
     let json_ctx = serde_json::to_value(&ctx)?;
     let html = templates.render("error.html", &json_ctx)?;
-    Ok(actix_web::HttpResponse::NotFound().content_type("text/html").body(html))
+    Ok(actix_web::HttpResponse::NotFound()
+        .content_type("text/html")
+        .body(html))
 }
 pub mod upload;
 

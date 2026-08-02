@@ -4,7 +4,10 @@ use crate::database::DatabaseBackend;
 use crate::domain::{Gallery, Photo};
 use crate::template::TemplateRenderer;
 use actix_identity::Identity;
-use actix_web::{HttpResponse, web::{Data, Path}};
+use actix_web::{
+    HttpResponse,
+    web::{Data, Path},
+};
 use serde::Serialize;
 
 /// GET /g/{slug} — public read-only gallery for a single band.
@@ -22,10 +25,7 @@ pub async fn get_public_gallery(
     let slug = slug.into_inner();
     let galleries = database.list_galleries().await?;
 
-    let gallery = match galleries
-        .into_iter()
-        .find(|g| g.slug == slug)
-    {
+    let gallery = match galleries.into_iter().find(|g| g.slug == slug) {
         Some(g) => g,
         None => {
             let error_ctx = serde_json::json!({
@@ -37,7 +37,9 @@ pub async fn get_public_gallery(
                 "message": format!("No gallery found for slug: {slug}"),
             });
             let html = templates.render("error.html", &error_ctx)?;
-            return Ok(HttpResponse::NotFound().content_type("text/html").body(html));
+            return Ok(HttpResponse::NotFound()
+                .content_type("text/html")
+                .body(html));
         }
     };
 

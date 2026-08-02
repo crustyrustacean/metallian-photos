@@ -5,7 +5,10 @@ use crate::template::TemplateRenderer;
 use actix_identity::Identity;
 use actix_web::HttpMessage;
 use actix_web::HttpRequest;
-use actix_web::{HttpResponse, web::{self, Data}};
+use actix_web::{
+    HttpResponse,
+    web::{self, Data},
+};
 use serde::Serialize;
 
 /// Check if the current request is authenticated. Returns Ok(()) if logged in,

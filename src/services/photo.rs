@@ -41,9 +41,7 @@ pub async fn create_photo_from_bytes(
         Err(_) => Exif::default(),
     };
 
-    let jpeg_bytes: Bytes = convert_heic_to_jpeg(&photo_bytes)
-        .map_err(e400)?
-        .into();
+    let jpeg_bytes: Bytes = convert_heic_to_jpeg(&photo_bytes).map_err(e400)?.into();
 
     let photo = Photo {
         id,

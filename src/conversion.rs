@@ -24,7 +24,8 @@ pub fn pixels_to_imagebuffer(
 pub fn convert_to_jpg(image: RgbaImage) -> Result<Vec<u8>, anyhow::Error> {
     let mut jpeg_bytes = Vec::new();
     let rgb = DynamicImage::from(image).into_rgb8();
-    rgb.write_to(&mut Cursor::new(&mut jpeg_bytes), image::ImageFormat::Jpeg).context("Unable to convert to jpg")?;
+    rgb.write_to(&mut Cursor::new(&mut jpeg_bytes), image::ImageFormat::Jpeg)
+        .context("Unable to convert to jpg")?;
 
     Ok(jpeg_bytes)
 }

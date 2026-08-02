@@ -72,14 +72,13 @@ async fn upload_redirects_to_gallery_and_persists_photo() {
 
     // Assert — 303 See Other redirect to /gallery
     assert_eq!(response.status().as_u16(), 303);
-    assert_eq!(response.headers().get("LOCATION").unwrap(), "/gallery?status=success");
+    assert_eq!(
+        response.headers().get("LOCATION").unwrap(),
+        "/gallery?status=success"
+    );
 
     // The photo was persisted through the shared save pipeline.
-    let photos = app
-        .database
-        .list()
-        .await
-        .expect("Failed to list photos");
+    let photos = app.database.list().await.expect("Failed to list photos");
     assert_eq!(photos.len(), 1);
     assert_eq!(photos[0].band, "The Band");
     assert_eq!(photos[0].venue, "Best Ever");

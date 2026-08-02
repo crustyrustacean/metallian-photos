@@ -13,7 +13,10 @@ struct PageContext<'a> {
     logged_in: bool,
 }
 
-pub async fn get_index_page(templates: Data<Box<dyn TemplateRenderer>>, identity: Option<Identity>) -> Result<HttpResponse, actix_web::Error> {
+pub async fn get_index_page(
+    templates: Data<Box<dyn TemplateRenderer>>,
+    identity: Option<Identity>,
+) -> Result<HttpResponse, actix_web::Error> {
     let logged_in = identity.map(|i| i.id().is_ok()).unwrap_or(false);
     let context = PageContext {
         title: "Home",
@@ -24,6 +27,6 @@ pub async fn get_index_page(templates: Data<Box<dyn TemplateRenderer>>, identity
 
     let json_context = serde_json::to_value(&context)?;
 
-     let html = templates.render("index.html", &json_context)?;
+    let html = templates.render("index.html", &json_context)?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
