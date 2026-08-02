@@ -1,0 +1,7 @@
+<div id="caption-{{ id }}" data-signals="{{ signals }}">
+    <input data-bind:band value="{{ band }}">
+    <input data-bind:tour value="{{ tour }}">
+    <input data-bind:venue value="{{ venue }}">
+    <button data-on:click="@put('/gallery/{{ id }}')">Save</button>
+    <button data-on:click="@get('/gallery/{{ id }}/cancel')">Cancel</button>
+</div>

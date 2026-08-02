@@ -12,7 +12,10 @@
         {% for photo in photos %}
             <li id="photo-{{ photo.id }}">
                 <img src="/api/photos/{{ photo.id }}/image" alt="{{ photo.band }} at {{ photo.venue }}" width="400">
-                <p>{{ loop.index }}. {{ photo.band }} — {{ photo.tour }} — {{ photo.venue }}</p>
+                <div id="caption-{{ photo.id }}">
+                    <p>{{ loop.index }}. {{ photo.band }} — {{ photo.tour }} — {{ photo.venue }}</p>
+                </div>
+                <button data-on:click="@get('/gallery/{{ photo.id }}/edit')">Edit</button>
                 <button data-on:click="@delete('/gallery/{{ photo.id }}')">Delete</button>
             </li>
         {% endfor %}
