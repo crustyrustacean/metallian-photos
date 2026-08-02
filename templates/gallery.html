@@ -8,7 +8,7 @@
     </div>
     <h3>Gallery Page</h3>
     {% if photos %}
-    <ul>
+    <ul class="gallery-grid">
         {% for photo in photos %}
             <li id="photo-{{ photo.id }}">
                 <img src="/api/photos/{{ photo.id }}/image" alt="{{ photo.band }} at {{ photo.venue }}" width="400">

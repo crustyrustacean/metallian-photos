@@ -19,8 +19,8 @@ pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>, databa
     
     let context = PageContext {
         title: "Gallery",
-        header: "R2 Photo API",
-        sub_header: "Gallery Page",
+        header: "Metallian Photos",
+        sub_header: "Concert Photo Archive",
         photos
     };
 

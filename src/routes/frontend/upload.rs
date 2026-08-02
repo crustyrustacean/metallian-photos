@@ -25,8 +25,8 @@ pub async fn get_upload_page(
 ) -> Result<HttpResponse, actix_web::Error> {
     let context = PageContext {
         title: "Upload",
-        header: "R2 Photo API",
-        sub_header: "Upload Page"
+        header: "Metallian Photos",
+        sub_header: "Concert Photo Archive"
     };
 
     let json_context = serde_json::to_value(&context)?;

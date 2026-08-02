@@ -14,8 +14,8 @@ struct PageContext<'a> {
 pub async fn get_index_page(templates: Data<Box<dyn TemplateRenderer>>) -> Result<HttpResponse, actix_web::Error> {
     let context = PageContext {
         title: "Home",
-        header: "R2 Photo API",
-        sub_header: "Landing Page"
+        header: "Metallian Photos",
+        sub_header: "Concert Photo Archive"
     };
 
     let json_context = serde_json::to_value(&context)?;

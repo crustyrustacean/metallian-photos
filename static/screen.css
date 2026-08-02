@@ -1,54 +1,359 @@
-/* 1. Use a more-intuitive box-sizing model */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
+/* ===== Design Tokens ===== */
+:root {
+  /* Colors — cardinal red accent on dark, matching crusty-metallian.net */
+  --accent: oklch(50% 0.2 15);
+  --bg-dark: oklch(10% 0 0);
+  --bg-card: oklch(15% 0 0);
+  --text-primary: oklch(90% 0 0);
+  --text-muted: oklch(60% 0 0);
+  --border: oklch(25% 0 0);
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
+  /* Typography */
+  --font-body: system-ui, sans-serif;
+  --font-heading: 'Oswald', sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+
+  /* Layout */
+  --content-width: 65ch;
+  --gallery-width: 1200px;
+  --border-width: 2px;
+  --radius: 4px;
+}
+
+/* ===== Reset ===== */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-/* 2. Remove default margin */
 *:not(dialog) {
   margin: 0;
 }
 
-/* 3. Enable keyword animations */
 @media (prefers-reduced-motion: no-preference) {
   html {
     interpolate-size: allow-keywords;
   }
 }
 
+html {
+  hanging-punctuation: first last;
+}
+
 body {
-  /* 4. Increase line-height */
-  line-height: 1.5;
-  /* 5. Improve text rendering */
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-/* 6. Improve media defaults */
 img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
 }
 
-/* 7. Inherit fonts for form controls */
 input, button, textarea, select {
   font: inherit;
 }
 
-/* 8. Avoid text overflows */
 p, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
 }
 
-/* 9. Improve line wrapping */
 p {
   text-wrap: pretty;
 }
+
 h1, h2, h3, h4, h5, h6 {
   text-wrap: balance;
 }
 
-/*
-  10. Create a root stacking context
-*/
 #root, #__next {
   isolation: isolate;
+}
+
+/* ===== Base ===== */
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: color-mix(in oklch, var(--accent), white 20%);
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+/* ===== Header ===== */
+header {
+  text-align: center;
+  padding: var(--space-lg) var(--space-md);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+header h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+
+header h2 {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-top: var(--space-xs);
+}
+
+/* ===== Navigation ===== */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm) var(--space-lg);
+  padding: var(--space-md);
+  border-bottom: var(--border-width) solid var(--border);
+}
+
+nav a {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+nav a:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ===== Main ===== */
+main {
+  flex: 1;
+  width: min(var(--content-width), 100% - var(--space-lg));
+  margin-inline: auto;
+  padding-block: var(--space-lg);
+}
+
+main h3 {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: var(--space-lg);
+}
+
+/* Gallery needs wider layout */
+main:has(.gallery-grid) {
+  width: min(var(--gallery-width), 100% - var(--space-lg));
+}
+
+/* ===== Footer ===== */
+footer {
+  margin-top: auto;
+  text-align: center;
+  padding: var(--space-md);
+  border-top: var(--border-width) solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ===== Flash message (upload success) ===== */
+[data-show] {
+  background: var(--bg-card);
+  border-inline-start: 3px solid var(--accent);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+/* ===== Gallery ===== */
+.gallery-grid {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-lg);
+}
+
+.gallery-grid > li {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gallery-grid > li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
+}
+
+.gallery-grid img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.gallery-grid img:hover {
+  opacity: 0.9;
+}
+
+.gallery-grid [id^="caption-"] {
+  padding: var(--space-md);
+}
+
+.gallery-grid [id^="caption-"] > p {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+/* ===== Inline edit form (Datastar morph target) ===== */
+.gallery-grid [id^="caption-"] input {
+  width: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  margin-bottom: var(--space-xs);
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-primary);
+}
+
+.gallery-grid [id^="caption-"] input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ===== Buttons ===== */
+button {
+  padding: var(--space-xs) var(--space-md);
+  background: var(--border);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button:hover {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Gallery item buttons sit in a row inside the caption area */
+.gallery-grid [id^="caption-"] button {
+  margin-top: var(--space-sm);
+  margin-inline-end: var(--space-xs);
+}
+
+/* ===== Upload form ===== */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-width: 400px;
+}
+
+form label {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+form input[type="text"],
+form input:not([type]) {
+  padding: var(--space-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-primary);
+}
+
+form input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+form input[type="file"] {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+form button[type="submit"] {
+  margin-top: var(--space-sm);
+  align-self: flex-start;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 500;
+}
+
+form button[type="submit"]:hover {
+  background: color-mix(in oklch, var(--accent), white 15%);
+}
+
+/* ===== Article cards (index/instructions) ===== */
+article {
+  background: var(--bg-card);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-inline-start: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+article ul {
+  padding-inline-start: var(--space-lg);
+  margin-top: var(--space-sm);
+}
+
+article li {
+  margin-bottom: var(--space-xs);
+}
+
+article li::marker {
+  color: var(--accent);
 }
