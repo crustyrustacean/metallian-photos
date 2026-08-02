@@ -1,0 +1,8 @@
+target
+.git
+.rho
+*.db
+debug_stderr.txt
+debug_stdout.txt
+.env
+tests/fixtures
