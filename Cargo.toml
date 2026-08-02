@@ -5,7 +5,7 @@ edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
 readme = "README.md"
-repository = "https://github.com/crustyrustacean/actix-web-starter.git"
+repository = "https://github.com/crustyrustacean/metallian-photos.git"
 license = "MIT"
 publish = false
 
