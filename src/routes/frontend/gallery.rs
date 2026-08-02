@@ -13,17 +13,20 @@ struct PageContext<'a> {
     title: &'a str,
     header: &'a str,
     sub_header: &'a str,
+    logged_in: bool,
     photos: Vec<Photo>,
 }
 
 pub async fn get_gallery_page(templates: Data<Box<dyn TemplateRenderer>>, database: Data<Box<dyn DatabaseBackend>>, identity: Identity) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
+    let logged_in = true;
     let photos = database.list().await?;
     
     let context = PageContext {
         title: "Gallery",
         header: "Metallian Photos",
         sub_header: "Concert Photo Archive",
+        logged_in,
         photos
     };
 

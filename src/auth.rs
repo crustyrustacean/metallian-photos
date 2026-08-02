@@ -69,6 +69,7 @@ pub async fn get_login_page(
         header: &'static str,
         sub_header: &'static str,
         error: bool,
+        logged_in: bool,
     }
 
     let context = Context {
@@ -76,6 +77,7 @@ pub async fn get_login_page(
         header: "Metallian Photos",
         sub_header: "Admin Access",
         error: query.error.is_some(),
+        logged_in: false,
     };
 
     let json_context = serde_json::to_value(&context)?;

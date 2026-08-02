@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-page">
+    <h3>{{ status_code }}</h3>
+    <p>{{ message }}</p>
+    <p><a href="/galleries">&larr; Back to Galleries</a></p>
+</div>
+{% endblock content %}

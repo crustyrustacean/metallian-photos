@@ -19,6 +19,7 @@ struct PageContext<'a> {
     title: &'a str,
     header: &'a str,
     sub_header: &'a str,
+    logged_in: bool,
 }
 
 /// GET /upload — render the upload form.
@@ -30,7 +31,8 @@ pub async fn get_upload_page(
     let context = PageContext {
         title: "Upload",
         header: "Metallian Photos",
-        sub_header: "Concert Photo Archive"
+        sub_header: "Concert Photo Archive",
+        logged_in: true,
     };
 
     let json_context = serde_json::to_value(&context)?;

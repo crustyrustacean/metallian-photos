@@ -498,3 +498,20 @@ article li::marker {
   border-radius: 2px;
   color: var(--text-primary);
 }
+
+/* ===== Error page ===== */
+.error-page {
+  text-align: center;
+  padding-block: var(--space-xl);
+}
+
+.error-page h3 {
+  font-size: 3rem;
+  color: var(--accent);
+  margin-bottom: var(--space-md);
+}
+
+.error-page p {
+  color: var(--text-muted);
+  margin-bottom: var(--space-md);
+}

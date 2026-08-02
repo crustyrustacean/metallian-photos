@@ -157,6 +157,8 @@ async fn run(
                         web::delete().to(api::delete_photo),
                     ),
             )
+            // --- catch-all 404 ---
+            .default_service(web::to(frontend::not_found))
             .app_data(template_renderer.clone())
             .app_data(database_repository.clone())
             .app_data(storage_backend.clone())
