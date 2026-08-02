@@ -1,5 +1,0 @@
-   Compiling metallian-photos v0.10.0 (C:\Users\jeff\Development\crustyrustacean\rust-lang\metallian-photos)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.44s
-     Running `target\debug\metallian-photos.exe`
-DEBUG: admin.username='crusty.rustacean', admin.password.len=12
-DEBUG: login attempt: username='crusty.rustacean', admin.username='crusty.rustacean'
