@@ -1,7 +1,7 @@
 // tests/api/upload.rs
 
 use crate::helpers::spawn_app;
-use r2_photo_api::database::DatabaseBackend;
+use metallian_photos::database::DatabaseBackend;
 use reqwest::multipart;
 
 #[tokio::test]

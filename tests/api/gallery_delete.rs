@@ -1,7 +1,7 @@
 // tests/api/gallery_delete.rs
 
 use crate::helpers::{create_photo, spawn_app};
-use r2_photo_api::database::DatabaseBackend;
+use metallian_photos::database::DatabaseBackend;
 
 #[tokio::test]
 async fn gallery_delete_removes_photo_and_returns_sse() {

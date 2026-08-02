@@ -3,7 +3,7 @@
 
 use bytes::Bytes;
 
-use r2_photo_api::exif::{get_raw_exif, parse_exif};
+use metallian_photos::exif::{get_raw_exif, parse_exif};
 use std::time::Instant;
 
 #[test]
@@ -21,18 +21,18 @@ fn time_pipeline_steps() {
 
     // HEIC decode (the `heic` crate → raw RGBA pixels)
     let t = Instant::now();
-    let decoded = r2_photo_api::conversion::heic_decode(raw).expect("decode should succeed");
+    let decoded = metallian_photos::conversion::heic_decode(raw).expect("decode should succeed");
     let decode_ms = t.elapsed().as_secs_f64() * 1000.0;
     println!("HEIC decode:   {:>8.2} ms", decode_ms);
     println!("dimensions:    {}x{} ({} px)", decoded.width, decoded.height,
         decoded.width as usize * decoded.height as usize);
 
     // JPEG encode (RGBA pixels → JPEG bytes)
-    let image_buffer = r2_photo_api::conversion::pixels_to_imagebuffer(
+    let image_buffer = metallian_photos::conversion::pixels_to_imagebuffer(
         decoded.width, decoded.height, decoded.data,
     ).expect("buffer should build");
     let t = Instant::now();
-    let jpeg = r2_photo_api::conversion::convert_to_jpg(image_buffer).expect("encode should succeed");
+    let jpeg = metallian_photos::conversion::convert_to_jpg(image_buffer).expect("encode should succeed");
     let encode_ms = t.elapsed().as_secs_f64() * 1000.0;
     println!("JPEG encode:   {:>8.2} ms", encode_ms);
     println!("total convert: {:>8.2} ms", decode_ms + encode_ms);

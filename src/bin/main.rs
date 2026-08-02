@@ -1,14 +1,14 @@
 // src/main.rs
 
 // dependencies
-use r2_photo_api::configuration::get_configuration;
-use r2_photo_api::database::DatabaseBackend;
-use r2_photo_api::database::SqliteRepository;
-use r2_photo_api::startup::Application;
-use r2_photo_api::storage::{InMemoryStorageBackend, OpendalStorageBackend};
-use r2_photo_api::storage::StorageBackend;
-use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
-use r2_photo_api::template::{TemplateRenderer, tera::TeraRenderer};
+use metallian_photos::configuration::get_configuration;
+use metallian_photos::database::DatabaseBackend;
+use metallian_photos::database::SqliteRepository;
+use metallian_photos::startup::Application;
+use metallian_photos::storage::{InMemoryStorageBackend, OpendalStorageBackend};
+use metallian_photos::storage::StorageBackend;
+use metallian_photos::telemetry::{get_subscriber, init_subscriber};
+use metallian_photos::template::{TemplateRenderer, tera::TeraRenderer};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

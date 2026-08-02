@@ -1,14 +1,14 @@
 // tests/api/helpers.rs
 
 // dependencies
-use r2_photo_api::configuration::get_configuration;
-use r2_photo_api::database::DatabaseBackend;
-use r2_photo_api::database::SqliteRepository;
-use r2_photo_api::startup::Application;
-use r2_photo_api::storage::InMemoryStorageBackend;
-use r2_photo_api::storage::StorageBackend;
-use r2_photo_api::telemetry::{get_subscriber, init_subscriber};
-use r2_photo_api::template::TemplateRenderer;
+use metallian_photos::configuration::get_configuration;
+use metallian_photos::database::DatabaseBackend;
+use metallian_photos::database::SqliteRepository;
+use metallian_photos::startup::Application;
+use metallian_photos::storage::InMemoryStorageBackend;
+use metallian_photos::storage::StorageBackend;
+use metallian_photos::telemetry::{get_subscriber, init_subscriber};
+use metallian_photos::template::TemplateRenderer;
 use reqwest::multipart;
 use std::sync::LazyLock;
 use uuid::Uuid;
@@ -49,7 +49,7 @@ pub async fn spawn_app() -> TestApp {
 
     // build the templates
     let template_renderer: Box<dyn TemplateRenderer> = Box::new(
-        r2_photo_api::template::tera::TeraRenderer::new()
+        metallian_photos::template::tera::TeraRenderer::new()
             .expect("Failed to build the template renderer."),
     );
 

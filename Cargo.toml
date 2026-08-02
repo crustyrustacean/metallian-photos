@@ -1,5 +1,5 @@
 [package]
-name = "r2-photo-api"
+name = "metallian-photos"
 version = "0.10.0"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
@@ -10,7 +10,7 @@ license = "MIT"
 publish = false
 
 [[bin]]
-name = "r2-photo-api"
+name = "metallian-photos"
 path = "src/bin/main.rs"
 
 [dependencies]

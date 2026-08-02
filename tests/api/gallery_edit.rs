@@ -1,7 +1,7 @@
 // tests/api/gallery_edit.rs
 
 use crate::helpers::{create_photo, spawn_app};
-use r2_photo_api::database::DatabaseBackend;
+use metallian_photos::database::DatabaseBackend;
 
 #[tokio::test]
 async fn edit_returns_form_with_current_metadata() {
