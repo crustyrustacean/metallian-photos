@@ -16,8 +16,9 @@ async fn main() -> anyhow::Result<()> {
     let subscriber = get_subscriber("metallian-photos".into(), "info".into(), std::io::stdout);
     init_subscriber(subscriber);
 
-    // get environment variables
-    dotenvy::dotenv()?;
+    // load .env if present (not present in production — env vars come
+    // from Fly secrets instead). Ignore the error if the file doesn't exist.
+    let _ = dotenvy::dotenv();
 
     // build the configuration
     let configuration = get_configuration().expect("Failed to read configuration.");
