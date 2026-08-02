@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h3>Galleries</h3>
+    {% if galleries %}
+    <ul class="gallery-index">
+        {% for gallery in galleries %}
+            <li class="gallery-card">
+                <a href="/g/{{ gallery.slug }}">
+                    {% if gallery.cover_photo_id %}
+                    <img src="/api/photos/{{ gallery.cover_photo_id }}/image"
+                         alt="{{ gallery.band }}"
+                         loading="lazy">
+                    {% endif %}
+                    <div class="gallery-card-info">
+                        <p class="gallery-card-band">{{ gallery.band }}</p>
+                        <p class="gallery-card-count">{{ gallery.photo_count }} photo{% if gallery.photo_count != 1 %}s{% endif %}</p>
+                    </div>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No galleries yet. <a href="/upload">Upload a photo</a> to create one.</p>
+    {% endif %}
+{% endblock content %}

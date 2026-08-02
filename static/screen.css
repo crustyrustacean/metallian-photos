@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
-
 /* ===== Design Tokens ===== */
 :root {
   /* Colors — cardinal red accent on dark, matching crusty-metallian.net */
@@ -173,7 +171,8 @@ main h3 {
 }
 
 /* Gallery needs wider layout */
-main:has(.gallery-grid) {
+main:has(.gallery-grid),
+main:has(.gallery-index) {
   width: min(var(--gallery-width), 100% - var(--space-lg));
 }
 
@@ -356,4 +355,82 @@ article li {
 
 article li::marker {
   color: var(--accent);
+}
+
+/* ===== Galleries Index ===== */
+.gallery-index {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--space-lg);
+}
+
+.gallery-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gallery-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
+}
+
+.gallery-card a {
+  display: block;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.gallery-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.gallery-card-info {
+  padding: var(--space-md);
+}
+
+.gallery-card-band {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.gallery-card-count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ===== Public Gallery (read-only) ===== */
+.photo-info {
+  padding: var(--space-md);
+}
+
+.photo-info > p {
+  margin-bottom: var(--space-xs);
+  line-height: 1.4;
+}
+
+.photo-info > p:first-child {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  color: var(--text-primary);
+}
+
+.photo-info > p:nth-child(2),
+.photo-info > p:nth-child(3) {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.gallery-back {
+  margin-top: var(--space-xl);
 }

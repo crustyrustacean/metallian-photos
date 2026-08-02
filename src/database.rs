@@ -1,6 +1,6 @@
 // src/database.rs
 
-use crate::domain::{Photo, UpdatePhoto};
+use crate::domain::{Gallery, Photo, UpdatePhoto};
 use crate::utils::error_chain_fmt;
 use actix_web::{ResponseError, http::StatusCode};
 use async_trait::async_trait;
@@ -42,4 +42,6 @@ pub trait DatabaseBackend: Send + Sync {
     async fn list(&self) -> Result<Vec<Photo>, DatabaseError>;
     async fn update(&self, id: Uuid, updated_photo: UpdatePhoto) -> Result<(), DatabaseError>;
     async fn delete(&self, id: Uuid) -> Result<(), DatabaseError>;
+    async fn list_galleries(&self) -> Result<Vec<Gallery>, DatabaseError>;
+    async fn list_photos_by_band(&self, band: &str) -> Result<Vec<Photo>, DatabaseError>;
 }

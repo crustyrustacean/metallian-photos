@@ -2,7 +2,7 @@
 
 use crate::configuration::DatabaseSettings;
 use crate::database::{DatabaseBackend, DatabaseError};
-use crate::domain::{Exif, Photo, UpdatePhoto};
+use crate::domain::{Exif, Gallery, Photo, UpdatePhoto};
 use anyhow::Context;
 use async_trait::async_trait;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
@@ -33,6 +33,13 @@ struct PhotoRow {
     pub model: Option<String>,
     pub lens_make: Option<String>,
     pub lens_model: Option<String>,
+}
+
+#[derive(Debug, FromRow)]
+struct GalleryRow {
+    pub band: String,
+    pub photo_count: i64,
+    pub cover_photo_id: Option<String>,
 }
 
 impl From<PhotoRow> for Photo {
@@ -145,6 +152,38 @@ impl DatabaseBackend for SqliteRepository {
             .context("Failed to delete the photo.")?;
 
         Ok(())
+    }
+
+    async fn list_galleries(&self) -> Result<Vec<Gallery>, DatabaseError> {
+        let rows: Vec<GalleryRow> = sqlx::query_as::<_, GalleryRow>(
+            "SELECT band, COUNT(*) as photo_count, (SELECT id FROM photos p2 WHERE p2.band = photos.band ORDER BY rowid DESC LIMIT 1) as cover_photo_id
+             FROM photos GROUP BY band ORDER BY band ASC",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .context("Failed to list galleries.")?;
+
+        Ok(rows
+            .into_iter()
+            .map(|r| Gallery {
+                slug: crate::domain::slugify(&r.band),
+                band: r.band,
+                photo_count: r.photo_count,
+                cover_photo_id: r.cover_photo_id.and_then(|s| Uuid::parse_str(&s).ok()),
+            })
+            .collect())
+    }
+
+    async fn list_photos_by_band(&self, band: &str) -> Result<Vec<Photo>, DatabaseError> {
+        let rows: Vec<PhotoRow> = sqlx::query_as::<_, PhotoRow>(
+            "SELECT * FROM photos WHERE band = ? ORDER BY rowid ASC",
+        )
+        .bind(band)
+        .fetch_all(&self.pool)
+        .await
+        .context("Failed to list photos by band.")?;
+
+        Ok(rows.into_iter().map(Photo::from).collect())
     }
 }
 

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h3>{{ band }}</h3>
+    {% if photos %}
+    <ul class="gallery-grid">
+        {% for photo in photos %}
+            <li>
+                <img src="/api/photos/{{ photo.id }}/image" alt="{{ photo.band }} at {{ photo.venue }}" loading="lazy">
+                <div class="photo-info">
+                    <p>{{ photo.band }}</p>
+                    <p>{{ photo.tour }}</p>
+                    <p>{{ photo.venue }}</p>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No photos in this gallery yet.</p>
+    {% endif %}
+
+    <p class="gallery-back"><a href="/galleries">&larr; All Galleries</a></p>
+{% endblock content %}

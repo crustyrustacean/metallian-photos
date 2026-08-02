@@ -6,6 +6,7 @@ use crate::database::DatabaseBackend;
 use crate::routes::{api, frontend};
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
+use actix_cors::Cors;
 use actix_files::Files;
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
@@ -68,6 +69,10 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .wrap(
+                Cors::permissive()
+                    .allowed_methods(["GET", "POST", "PUT", "DELETE"]),
+            )
             // frontend routes — browser-facing HTML pages
             .route("/", web::get().to(frontend::get_index_page))
             .route("/gallery", web::get().to(frontend::get_gallery_page))
@@ -77,6 +82,8 @@ async fn run(
             .route("/gallery/{id}/edit", web::get().to(frontend::edit_photo))
             .route("/gallery/{id}", web::put().to(frontend::update_photo))
             .route("/gallery/{id}/cancel", web::get().to(frontend::cancel_edit))
+            .route("/galleries", web::get().to(frontend::get_galleries_index))
+            .route("/g/{slug}", web::get().to(frontend::get_public_gallery))
             .service(Files::new("/static", "static").prefer_utf8(true))
             // api routes — machine-facing JSON endpoints
             .service(
@@ -84,6 +91,7 @@ async fn run(
                     .route("/health_check", web::get().to(api::health_check))
                     .route("/photos", web::post().to(api::create_photo))
                     .route("/photos/{id}", web::get().to(api::read_photo))
+                    .route("/galleries", web::get().to(api::list_galleries))
                     .route("/photos/{id}/image", web::get().to(api::get_photo_image))
                     .route("/photos/{id}", web::put().to(api::update_photo))
                     .route("/photos/{id}", web::delete().to(api::delete_photo)),
