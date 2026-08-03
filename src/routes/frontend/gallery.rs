@@ -28,8 +28,8 @@ pub async fn get_gallery_page(
 
     let context = PageContext {
         title: "Gallery",
-        header: "Metallian Photos",
-        sub_header: "Concert Photo Archive",
+        header: "crusty-metallian-net",
+        sub_header: "Concert Photo Galleries",
         logged_in,
         photos,
     };

@@ -19,9 +19,9 @@ pub async fn get_index_page(
 ) -> Result<HttpResponse, actix_web::Error> {
     let logged_in = identity.map(|i| i.id().is_ok()).unwrap_or(false);
     let context = PageContext {
-        title: "Home",
-        header: "Metallian Photos",
-        sub_header: "Concert Photo Archive",
+        title: "Galleries",
+        header: "Crusty-Metallian-Net",
+        sub_header: "Concert Photo Galleries",
         logged_in,
     };
 

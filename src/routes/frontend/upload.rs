@@ -30,8 +30,8 @@ pub async fn get_upload_page(
     require_login(&identity)?;
     let context = PageContext {
         title: "Upload",
-        header: "Metallian Photos",
-        sub_header: "Concert Photo Archive",
+        header: "Crusty-Metallian-Net",
+        sub_header: "Concert Photo Galleries",
         logged_in: true,
     };
 

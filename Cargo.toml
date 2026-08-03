@@ -1,6 +1,6 @@
 [package]
 name = "metallian-photos"
-version = "0.10.0"
+version = "0.10.1"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
