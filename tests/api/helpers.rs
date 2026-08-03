@@ -38,7 +38,7 @@ pub struct TestApp {
 
 pub async fn spawn_app() -> TestApp {
     LazyLock::force(&TRACING);
-    dotenvy::dotenv().expect("Unable to read environment variables.");
+    let _ = dotenvy::dotenv();
     let configuration = {
         let mut c = get_configuration().expect("Failed to read configuration.");
 
