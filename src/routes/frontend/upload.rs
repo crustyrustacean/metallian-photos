@@ -22,6 +22,15 @@ struct PageContext<'a> {
     logged_in: bool,
 }
 
+#[derive(Debug, MultipartForm)]
+pub struct UploadForm {
+    band: Text<String>,
+    tour: Text<String>,
+    venue: Text<String>,
+    #[multipart(rename = "file")]
+    photo_file: Vec<TempFile>,
+}
+
 /// GET /upload — render the upload form.
 pub async fn get_upload_page(
     templates: Data<Box<dyn TemplateRenderer>>,
@@ -30,7 +39,7 @@ pub async fn get_upload_page(
     require_login(&identity)?;
     let context = PageContext {
         title: "Upload",
-        header: "Crusty-Metallian-Net",
+        header: "Metallian Photos",
         sub_header: "Concert Photo Galleries",
         logged_in: true,
     };
@@ -39,15 +48,6 @@ pub async fn get_upload_page(
 
     let html = templates.render("upload.html", &json_context)?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
-}
-
-#[derive(Debug, MultipartForm)]
-pub struct UploadForm {
-    band: Text<String>,
-    tour: Text<String>,
-    venue: Text<String>,
-    #[multipart(rename = "file")]
-    photo_file: Vec<TempFile>,
 }
 
 /// POST /upload — browser-facing upload. Saves the photo via the shared

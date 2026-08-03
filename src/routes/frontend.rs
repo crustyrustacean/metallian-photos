@@ -1,16 +1,26 @@
 // src/routes/frontend.rs
 
+use actix_web::HttpResponse;
+
 pub mod delete;
 pub mod edit;
 pub mod galleries;
 pub mod gallery;
 pub mod index;
+pub mod upload;
+
+pub use delete::*;
+pub use edit::*;
+pub use galleries::*;
+pub use gallery::*;
+pub use index::*;
+pub use upload::*;
 
 /// GET * — catch-all 404 handler.
 pub async fn not_found(
     templates: actix_web::web::Data<Box<dyn crate::template::TemplateRenderer>>,
     identity: Option<actix_identity::Identity>,
-) -> Result<actix_web::HttpResponse, actix_web::Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     use serde::Serialize;
     let logged_in = identity.map(|i| i.id().is_ok()).unwrap_or(false);
     #[derive(Serialize)]
@@ -25,7 +35,7 @@ pub async fn not_found(
     let ctx = Ctx {
         title: "Not Found",
         header: "Metallian Photos",
-        sub_header: "Concert Photo Archive",
+        sub_header: "Concert Photo Galleries",
         logged_in,
         status_code: "404",
         message: "The page you are looking for does not exist.",
@@ -36,11 +46,3 @@ pub async fn not_found(
         .content_type("text/html")
         .body(html))
 }
-pub mod upload;
-
-pub use delete::*;
-pub use edit::*;
-pub use galleries::*;
-pub use gallery::*;
-pub use index::*;
-pub use upload::*;

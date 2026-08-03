@@ -10,6 +10,26 @@ use actix_web::{
 };
 use serde::Serialize;
 
+#[derive(Serialize)]
+struct GalleriesIndexContext<'a> {
+    title: &'a str,
+    header: &'a str,
+    sub_header: &'a str,
+    logged_in: bool,
+    galleries: Vec<Gallery>,
+}
+
+#[derive(Serialize)]
+struct GalleryPageContext<'a> {
+    title: &'a str,
+    header: &'a str,
+    sub_header: &'a str,
+    logged_in: bool,
+    band: &'a str,
+    photo_count: i64,
+    photos: Vec<Photo>,
+}
+
 /// GET /g/{slug} — public read-only gallery for a single band.
 ///
 /// The slug is derived from the band name (e.g. "iron-maiden"). We reverse
@@ -31,7 +51,7 @@ pub async fn get_public_gallery(
             let error_ctx = serde_json::json!({
                 "title": "Not Found",
                 "header": "Metallian Photos",
-                "sub_header": "Concert Photo Archive",
+                "sub_header": "Concert Photo Galleries",
                 "logged_in": logged_in,
                 "status_code": "404",
                 "message": format!("No gallery found for slug: {slug}"),
@@ -48,7 +68,7 @@ pub async fn get_public_gallery(
     let context = GalleryPageContext {
         title: &gallery.band,
         header: "Metallian Photos",
-        sub_header: "Concert Photo Archive",
+        sub_header: "Concert Photo Galleries",
         logged_in,
         band: &gallery.band,
         photo_count: gallery.photo_count,
@@ -58,17 +78,6 @@ pub async fn get_public_gallery(
     let json_context = serde_json::to_value(&context)?;
     let html = templates.render("public_gallery.html", &json_context)?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
-}
-
-#[derive(Serialize)]
-struct GalleryPageContext<'a> {
-    title: &'a str,
-    header: &'a str,
-    sub_header: &'a str,
-    logged_in: bool,
-    band: &'a str,
-    photo_count: i64,
-    photos: Vec<Photo>,
 }
 
 /// GET /galleries — admin-facing list of all galleries (for the nav link).
@@ -83,7 +92,7 @@ pub async fn get_galleries_index(
     let context = GalleriesIndexContext {
         title: "Galleries",
         header: "Metallian Photos",
-        sub_header: "Concert Photo Archive",
+        sub_header: "Concert Photo Galleries",
         logged_in,
         galleries,
     };
@@ -91,13 +100,4 @@ pub async fn get_galleries_index(
     let json_context = serde_json::to_value(&context)?;
     let html = templates.render("galleries_index.html", &json_context)?;
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
-}
-
-#[derive(Serialize)]
-struct GalleriesIndexContext<'a> {
-    title: &'a str,
-    header: &'a str,
-    sub_header: &'a str,
-    logged_in: bool,
-    galleries: Vec<Gallery>,
 }

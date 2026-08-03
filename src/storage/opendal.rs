@@ -25,7 +25,7 @@ impl OpendalStorageBackend {
             .access_key_id(config.r2_access_key.expose_secret())
             .secret_access_key(config.r2_secret_key.expose_secret());
 
-        let op: Operator = Operator::new(builder)?.finish();
+        let op: Operator = Operator::new(builder)?;
 
         Ok(Self { op })
     }
