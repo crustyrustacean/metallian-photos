@@ -83,3 +83,53 @@ async fn upload_redirects_to_gallery_and_persists_photo() {
     assert_eq!(photos[0].band, "The Band");
     assert_eq!(photos[0].venue, "Best Ever");
 }
+
+#[tokio::test]
+async fn upload_multiple_files_persists_all_photos() {
+    // Arrange
+    let app = spawn_app().await;
+    let fixture = include_bytes!("../fixtures/IMG_2215.HEIC");
+    let file_part1 = multipart::Part::bytes(fixture.as_slice().to_vec())
+        .file_name("IMG_2215_1.HEIC")
+        .mime_str("image/heic")
+        .unwrap();
+    let file_part2 = multipart::Part::bytes(fixture.as_slice().to_vec())
+        .file_name("IMG_2215_2.HEIC")
+        .mime_str("image/heic")
+        .unwrap();
+
+    let form = multipart::Form::new()
+        .text("band", "Iron Maiden")
+        .text("tour", "Future Past Tour")
+        .text("venue", "Wembley Stadium")
+        .part("file", file_part1)
+        .part("file", file_part2);
+
+    let noredirect_client = reqwest::Client::builder()
+        .cookie_store(true)
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+
+    noredirect_client
+        .post(&format!("{}/login", &app.address))
+        .form(&[("username", "testadmin"), ("password", "testpassword")])
+        .send()
+        .await
+        .expect("Failed to log in");
+
+    // Act
+    let response = noredirect_client
+        .post(&format!("{}/upload", &app.address))
+        .multipart(form)
+        .send()
+        .await
+        .expect("Failed to execute upload request");
+
+    // Assert
+    assert_eq!(response.status().as_u16(), 303);
+    let photos = app.database.list().await.expect("Failed to list photos");
+    assert_eq!(photos.len(), 2);
+    assert_eq!(photos[0].band, "Iron Maiden");
+    assert_eq!(photos[1].band, "Iron Maiden");
+}

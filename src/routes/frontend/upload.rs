@@ -50,7 +50,7 @@ pub async fn get_upload_page(
     Ok(HttpResponse::Ok().content_type("text/html").body(html))
 }
 
-/// POST /upload — browser-facing upload. Saves the photo via the shared
+/// POST /upload — browser-facing upload. Saves the photos via the shared
 /// pipeline, then redirects to the gallery on success.
 ///
 /// Unlike `POST /api/photos` (which returns JSON), this route returns a
@@ -63,22 +63,28 @@ pub async fn post_upload(
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
-    let photo_file = form
-        .photo_file
-        .into_iter()
-        .next()
-        .ok_or_else(|| e400("a file upload is required"))?;
-    let photo_file_bytes = fs::read(photo_file.file.path()).map_err(e400)?.into();
 
-    create_photo_from_bytes(
-        photo_file_bytes,
-        form.band.into_inner(),
-        form.tour.into_inner(),
-        form.venue.into_inner(),
-        database.as_ref().as_ref(),
-        storage.as_ref().as_ref(),
-    )
-    .await?;
+    if form.photo_file.is_empty() {
+        return Err(e400("a file upload is required"));
+    }
+
+    let band = form.band.into_inner();
+    let tour = form.tour.into_inner();
+    let venue = form.venue.into_inner();
+
+    for photo_file in form.photo_file {
+        let photo_file_bytes = fs::read(photo_file.file.path()).map_err(e400)?.into();
+
+        create_photo_from_bytes(
+            photo_file_bytes,
+            band.clone(),
+            tour.clone(),
+            venue.clone(),
+            database.as_ref().as_ref(),
+            storage.as_ref().as_ref(),
+        )
+        .await?;
+    }
 
     Ok(HttpResponse::SeeOther()
         .insert_header(("Location", "/gallery?status=success"))
