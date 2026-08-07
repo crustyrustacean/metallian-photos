@@ -82,6 +82,7 @@ pub async fn spawn_app() -> TestApp {
 
     let client = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
+        .pool_max_idle_per_host(0)
         .build()
         .unwrap();
 
@@ -90,6 +91,7 @@ pub async fn spawn_app() -> TestApp {
     let admin_client = reqwest::Client::builder()
         .cookie_store(true)
         .redirect(reqwest::redirect::Policy::default())
+        .pool_max_idle_per_host(0)
         .build()
         .unwrap();
 

@@ -108,6 +108,7 @@ async fn upload_multiple_files_persists_all_photos() {
     let noredirect_client = reqwest::Client::builder()
         .cookie_store(true)
         .redirect(reqwest::redirect::Policy::none())
+        .pool_max_idle_per_host(0)
         .build()
         .unwrap();
 
