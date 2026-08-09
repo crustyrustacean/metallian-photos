@@ -435,6 +435,31 @@ article li::marker {
   margin-top: var(--space-xl);
 }
 
+/* ===== Index hero (featured concert photo) ===== */
+main:has(figure) {
+  width: min(var(--gallery-width), 100% - var(--space-lg));
+}
+
+main figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+main figure img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
+}
+
+main figure figcaption {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 /* ===== EXIF hover overlay ===== */
 .photo-thumb {
   position: relative;
