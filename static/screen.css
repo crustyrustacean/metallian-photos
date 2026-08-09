@@ -221,8 +221,6 @@ footer {
 .gallery-grid img {
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
@@ -387,8 +385,6 @@ article li::marker {
 .gallery-card img {
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
 }
 
 .gallery-card-info {
