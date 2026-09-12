@@ -1,6 +1,6 @@
 [package]
 name = "metallian-photos"
-version = "0.11.3"
+version = "0.11.4"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
@@ -31,7 +31,7 @@ heic = "0.1"
 image = "0.25"
 kamadak-exif = "0.6"
 log = "0.4"
-opendal = { version = "0.58", features = ["services-s3", "services-fs"] }
+opendal = { version = "0.59", features = ["services-s3", "services-fs"] }
 reqwest = { version = "0.13", features = [ "json" ] }
 secrecy = { version = "0.10", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }
