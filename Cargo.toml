@@ -19,7 +19,17 @@ actix-identity = "0.9"
 actix-session = { version = "0.11", features = ["cookie-session"] }
 actix-files = "0.7"
 actix-multipart = { version = "0.8", features = ["tempfile"] }
-actix-web = "4"
+# default-features = false drops actix-web's "http2" feature, which is the
+# only thing in the graph enabling the vulnerable h2 0.3.x (RUSTSEC-2026-0258,
+# fixed only in h2 >= 0.4.16; actix-http still pins ^0.3.27). This app serves
+# plain HTTP behind Fly.io's TLS-terminating proxy, so HTTP/2 is never used.
+# The rest of the default set is unused too and dropped: no routing macros
+# (builder-style routes only), no Compress middleware (Fly.io compresses at
+# the edge), no websockets (Datastar is SSE), ASCII-only routes (no `unicode`),
+# no macros means no need for `compat`. Only `cookies` is used — startup.rs
+# signs sessions with `actix_web::cookie::Key`. Revisit when actix-http moves
+# to h2 0.4.
+actix-web = { version = "4", default-features = false, features = ["cookies"] }
 async-trait = "0.1"
 anyhow = "1"
 bytes = "1"
@@ -28,14 +38,17 @@ dotenvy = "0.15"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 config = { version = "0.15", default-features = false, features = ["yaml"] }
 heic = "0.1"
-image = "0.25"
+# Only JPEG encoding is used (conversion.rs; HEIC decoding is the `heic`
+# crate). The default formats pulled in the unmaintained `paste` crate
+# (RUSTSEC-2024-0436) through the AVIF (rav1e) and EXR (pulp) codecs.
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
 kamadak-exif = "0.6"
 log = "0.4"
 opendal = { version = "0.59", features = ["services-s3", "services-fs"] }
 reqwest = { version = "0.13", features = [ "json" ] }
 secrecy = { version = "0.10", features = ["serde"] }
-serde = { version = "1.0.228", features = ["derive"] }
-serde-aux = "4.7.0"
+serde = { version = "1", features = ["derive"] }
+serde-aux = "4"
 serde_json = "1"
 sqlx = { version = "0.9", default-features = false, features = [
     "runtime-tokio",
