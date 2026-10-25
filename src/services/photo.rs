@@ -9,7 +9,8 @@ use crate::database::DatabaseBackend;
 use crate::domain::{Exif, Photo};
 use crate::exif::{get_raw_exif, parse_exif};
 use crate::storage::StorageBackend;
-use crate::utils::e400;
+use crate::telemetry::spawn_blocking_with_tracing;
+use crate::utils::{e400, e500};
 use bytes::Bytes;
 use uuid::Uuid;
 
@@ -24,6 +25,11 @@ use uuid::Uuid;
 /// 3. Converts HEIC → JPEG for storage.
 /// 4. Writes the metadata row to the database, then the JPEG bytes to storage.
 ///
+/// Steps 2 and 3 are CPU-bound (~0.65 s per iPhone photo in a release build)
+/// and run on Tokio's blocking thread pool. Running them inline would stall
+/// the async worker — and on a single-CPU machine there is only one, so every
+/// other request (public galleries, blog image fetches) would wait.
+///
 /// Returns the new photo's UUID so the caller decides the response shape —
 /// JSON for the API route, a redirect for the browser form.
 pub async fn create_photo_from_bytes(
@@ -36,12 +42,18 @@ pub async fn create_photo_from_bytes(
 ) -> Result<Uuid, actix_web::Error> {
     let id = Uuid::new_v4();
 
-    let exif_data = match get_raw_exif(&photo_bytes) {
-        Ok(raw) => parse_exif(&raw),
-        Err(_) => Exif::default(),
-    };
-
-    let jpeg_bytes: Bytes = convert_heic_to_jpeg(&photo_bytes).map_err(e400)?.into();
+    let (exif_data, jpeg_bytes) = spawn_blocking_with_tracing(move || {
+        let exif_data = match get_raw_exif(&photo_bytes) {
+            Ok(raw) => parse_exif(&raw),
+            Err(_) => Exif::default(),
+        };
+        convert_heic_to_jpeg(&photo_bytes).map(|jpeg| (exif_data, Bytes::from(jpeg)))
+    })
+    .await
+    // The blocking task panicked or was cancelled — a server fault.
+    .map_err(e500)?
+    // The bytes weren't a decodable HEIC image — the client's fault.
+    .map_err(e400)?;
 
     let photo = Photo {
         id,

@@ -5,12 +5,12 @@ use crate::database::DatabaseBackend;
 use crate::domain::UpdatePhoto;
 use crate::services::create_photo_from_bytes;
 use crate::storage::StorageBackend;
-use crate::utils::e400;
+use crate::utils::{e400, e500};
 use actix_identity::Identity;
 use actix_multipart::form::{MultipartForm, tempfile::TempFile, text::Text};
 use actix_web::HttpResponse;
 use actix_web::http::StatusCode;
-use actix_web::web::{Data, Form, Path};
+use actix_web::web::{self, Data, Form, Path};
 use std::fs;
 use uuid::Uuid;
 
@@ -36,7 +36,12 @@ pub async fn create_photo(
         .into_iter()
         .next()
         .ok_or_else(|| e400("a file upload is required"))?;
-    let photo_file_bytes = fs::read(photo_file.file.path()).map_err(e400)?.into();
+    // Read the temp file on the blocking pool so the async worker stays free.
+    let photo_file_bytes = web::block(move || fs::read(photo_file.file.path()))
+        .await
+        .map_err(e500)?
+        .map_err(e400)?
+        .into();
 
     let id = create_photo_from_bytes(
         photo_file_bytes,

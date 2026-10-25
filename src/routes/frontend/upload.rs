@@ -5,12 +5,11 @@ use crate::database::DatabaseBackend;
 use crate::services::create_photo_from_bytes;
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
-use crate::utils::e400;
+use crate::utils::{e400, e500};
 use actix_identity::Identity;
 use actix_multipart::form::{MultipartForm, tempfile::TempFile, text::Text};
 use actix_web::HttpResponse;
-
-use actix_web::web::Data;
+use actix_web::web::{self, Data};
 use serde::Serialize;
 use std::fs;
 
@@ -73,7 +72,12 @@ pub async fn post_upload(
     let venue = form.venue.into_inner();
 
     for photo_file in form.photo_file {
-        let photo_file_bytes = fs::read(photo_file.file.path()).map_err(e400)?.into();
+        // Read the temp file on the blocking pool so the async worker stays free.
+        let photo_file_bytes = web::block(move || fs::read(photo_file.file.path()))
+            .await
+            .map_err(e500)?
+            .map_err(e400)?
+            .into();
 
         create_photo_from_bytes(
             photo_file_bytes,
