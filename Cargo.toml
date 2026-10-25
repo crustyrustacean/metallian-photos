@@ -71,6 +71,14 @@ uuid = { version = "1", features = ["v4", "serde"] }
 [dev-dependencies]
 reqwest = { version = "0.13", features = ["form", "multipart", "cookies"] }
 
+[profile.release]
+# Cross-crate optimization and a single codegen unit trade longer release
+# builds for a faster binary; strip drops debug symbols for a smaller image.
+# panic stays "unwind" so a panicking handler kills one worker, not the process.
+lto = "thin"
+codegen-units = 1
+strip = true
+
 [profile.dev.package."*"]
 # Dependencies get full optimization so compute-heavy crates (heic, image)
 # run at near-release speed during development. Our own crates stay at

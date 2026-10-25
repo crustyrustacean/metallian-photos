@@ -13,8 +13,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 # ---- Stage 3: Builder — compile dependencies, then the app ----
 FROM chef AS builder
 
-# System dependencies for the heic crate
-RUN apt-get update && apt-get install -y libheif-dev && rm -rf /var/lib/apt/lists/*
+# No system libraries needed: the `heic` crate is a pure-Rust decoder.
 
 # Copy the recipe and build dependencies first (cached layer)
 COPY --from=planner /app/recipe.json recipe.json
@@ -29,7 +28,6 @@ FROM debian:bookworm-slim AS runtime
 
 # Runtime system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libheif1 \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
