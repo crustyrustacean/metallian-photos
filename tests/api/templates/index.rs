@@ -10,7 +10,7 @@ async fn index_page_returns_200_ok_and_renders_html_content() {
 
     // Act
     let response = client
-        .get(&format!("{}/", &app.address))
+        .get(format!("{}/", app.address))
         .send()
         .await
         .expect("Failed to execute request.");

@@ -78,7 +78,7 @@ pub async fn spawn_app() -> TestApp {
     .await
     .expect("Failed to build application.");
     let application_port = application.port();
-    let _ = tokio::spawn(application.run_until_stopped());
+    let _server = tokio::spawn(application.run_until_stopped());
 
     let client = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())
@@ -95,15 +95,13 @@ pub async fn spawn_app() -> TestApp {
         .build()
         .unwrap();
 
-    let test_app = TestApp {
+    TestApp {
         address: format!("http://localhost:{}", application_port),
         port: application_port,
         api_client: client,
         admin_client,
         database: database_for_test,
-    };
-
-    test_app
+    }
 }
 
 /// Create a photo via the multipart `/api/photos` endpoint and return its id.
@@ -132,7 +130,7 @@ pub async fn create_photo(client: &reqwest::Client, address: &str) -> Uuid {
 /// returns the created photo's id.
 async fn post_photo_form(client: &reqwest::Client, address: &str, form: multipart::Form) -> Uuid {
     let response = client
-        .post(&format!("{}/api/photos", address))
+        .post(format!("{}/api/photos", address))
         .multipart(form)
         .send()
         .await
@@ -154,7 +152,7 @@ async fn post_photo_form(client: &reqwest::Client, address: &str, form: multipar
 /// Call this before hitting any admin route.
 pub async fn login(app: &TestApp) {
     app.admin_client
-        .post(&format!("{}/login", app.address))
+        .post(format!("{}/login", app.address))
         .form(&[("username", "testadmin"), ("password", "testpassword")])
         .send()
         .await

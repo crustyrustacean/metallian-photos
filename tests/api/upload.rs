@@ -17,7 +17,7 @@ async fn upload_form_returns_400_for_missing_file() {
     // Act
     let response = app
         .admin_client
-        .post(&format!("{}/upload", &app.address))
+        .post(format!("{}/upload", app.address))
         .multipart(form)
         .send()
         .await
@@ -57,14 +57,14 @@ async fn upload_redirects_to_gallery_and_persists_photo() {
         .unwrap();
     // Log in with this client too
     noredirect_client
-        .post(&format!("{}/login", &app.address))
+        .post(format!("{}/login", app.address))
         .form(&[("username", "testadmin"), ("password", "testpassword")])
         .send()
         .await
         .expect("Failed to log in");
 
     let response = noredirect_client
-        .post(&format!("{}/upload", &app.address))
+        .post(format!("{}/upload", app.address))
         .multipart(form)
         .send()
         .await
@@ -113,7 +113,7 @@ async fn upload_multiple_files_persists_all_photos() {
         .unwrap();
 
     noredirect_client
-        .post(&format!("{}/login", &app.address))
+        .post(format!("{}/login", app.address))
         .form(&[("username", "testadmin"), ("password", "testpassword")])
         .send()
         .await
@@ -121,7 +121,7 @@ async fn upload_multiple_files_persists_all_photos() {
 
     // Act
     let response = noredirect_client
-        .post(&format!("{}/upload", &app.address))
+        .post(format!("{}/upload", app.address))
         .multipart(form)
         .send()
         .await

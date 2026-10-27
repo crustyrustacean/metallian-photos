@@ -13,7 +13,7 @@ async fn gallery_delete_removes_photo_and_returns_sse() {
     // Act — DELETE via the frontend Datastar endpoint
     let response = app
         .admin_client
-        .delete(&format!("{}/gallery/{}", &app.address, id))
+        .delete(format!("{}/gallery/{}", app.address, id))
         .send()
         .await
         .expect("Failed to execute delete request");

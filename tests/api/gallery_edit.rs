@@ -13,7 +13,7 @@ async fn edit_returns_form_with_current_metadata() {
     // Act — GET the edit form
     let response = app
         .admin_client
-        .get(&format!("{}/gallery/{}/edit", &app.address, id))
+        .get(format!("{}/gallery/{}/edit", app.address, id))
         .send()
         .await
         .expect("Failed to execute edit request");
@@ -50,7 +50,7 @@ async fn update_saves_changes_and_returns_caption() {
 
     let response = app
         .admin_client
-        .put(&format!("{}/gallery/{}", &app.address, id))
+        .put(format!("{}/gallery/{}", app.address, id))
         .header("Content-Type", "application/json")
         .json(&signals)
         .send()
@@ -82,7 +82,7 @@ async fn cancel_returns_original_caption_without_saving() {
     // Act — GET the cancel endpoint
     let response = app
         .admin_client
-        .get(&format!("{}/gallery/{}/cancel", &app.address, id))
+        .get(format!("{}/gallery/{}/cancel", app.address, id))
         .send()
         .await
         .expect("Failed to execute cancel request");

@@ -71,7 +71,7 @@ async fn create_photo_endpoint_returns_400_for_bad_multipart_form_data() {
     // Act
     let response = app
         .admin_client
-        .post(&format!("{}/api/photos", &app.address))
+        .post(format!("{}/api/photos", app.address))
         .multipart(form)
         .send()
         .await
@@ -92,7 +92,7 @@ async fn create_photo_extracts_and_persists_exif_data() {
 
     let response = app
         .admin_client
-        .get(&format!("{}/api/photos/{}", &app.address, id))
+        .get(format!("{}/api/photos/{}", app.address, id))
         .send()
         .await
         .expect("Failed to execute request.");

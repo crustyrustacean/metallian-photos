@@ -60,7 +60,7 @@ mod tests {
         // Assert
         assert!(output.width > 0);
         assert!(output.height > 0);
-        assert!(output.data.len() > 0);
+        assert!(!output.data.is_empty());
     }
 
     #[test]
