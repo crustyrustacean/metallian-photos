@@ -1,6 +1,6 @@
 [package]
 name = "metallian-photos"
-version = "0.11.4"
+version = "0.11.5"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
@@ -19,16 +19,6 @@ actix-identity = "0.9"
 actix-session = { version = "0.11", features = ["cookie-session"] }
 actix-files = "0.7"
 actix-multipart = { version = "0.8", features = ["tempfile"] }
-# default-features = false drops actix-web's "http2" feature, which is the
-# only thing in the graph enabling the vulnerable h2 0.3.x (RUSTSEC-2026-0258,
-# fixed only in h2 >= 0.4.16; actix-http still pins ^0.3.27). This app serves
-# plain HTTP behind Fly.io's TLS-terminating proxy, so HTTP/2 is never used.
-# The rest of the default set is unused too and dropped: no routing macros
-# (builder-style routes only), no Compress middleware (Fly.io compresses at
-# the edge), no websockets (Datastar is SSE), ASCII-only routes (no `unicode`),
-# no macros means no need for `compat`. Only `cookies` is used — startup.rs
-# signs sessions with `actix_web::cookie::Key`. Revisit when actix-http moves
-# to h2 0.4.
 actix-web = { version = "4", default-features = false, features = ["cookies"] }
 async-trait = "0.1"
 anyhow = "1"
@@ -38,9 +28,6 @@ dotenvy = "0.15"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 config = { version = "0.15", default-features = false, features = ["yaml"] }
 heic = "0.1"
-# Only JPEG encoding is used (conversion.rs; HEIC decoding is the `heic`
-# crate). The default formats pulled in the unmaintained `paste` crate
-# (RUSTSEC-2024-0436) through the AVIF (rav1e) and EXR (pulp) codecs.
 image = { version = "0.25", default-features = false, features = ["jpeg"] }
 kamadak-exif = "0.6"
 log = "0.4"
@@ -58,7 +45,7 @@ sqlx = { version = "0.9", default-features = false, features = [
     "chrono",
     "migrate",
 ] }
-tera = { version = "2.1", features = ["fast", "glob_fs"] }
+tera = { version = "2", features = ["fast", "glob_fs"] }
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1"
@@ -72,15 +59,9 @@ uuid = { version = "1", features = ["v4", "serde"] }
 reqwest = { version = "0.13", features = ["form", "multipart", "cookies"] }
 
 [profile.release]
-# Cross-crate optimization and a single codegen unit trade longer release
-# builds for a faster binary; strip drops debug symbols for a smaller image.
-# panic stays "unwind" so a panicking handler kills one worker, not the process.
 lto = "thin"
 codegen-units = 1
 strip = true
 
 [profile.dev.package."*"]
-# Dependencies get full optimization so compute-heavy crates (heic, image)
-# run at near-release speed during development. Our own crates stay at
-# opt-level 0 for fast recompiles and step-debugging.
 opt-level = 3
