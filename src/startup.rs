@@ -5,6 +5,7 @@ use crate::auth;
 use crate::configuration::Settings;
 use crate::database::DatabaseBackend;
 use crate::routes::{api, frontend};
+use crate::services::PhotoOperations;
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
 use actix_cors::Cors;
@@ -16,11 +17,15 @@ use actix_web::dev::Server;
 use actix_web::{App, HttpServer, web, web::Data};
 
 use std::net::TcpListener;
+use std::sync::Arc;
 use tracing_actix_web::TracingLogger;
 
 pub struct Application {
     port: u16,
     server: Server,
+    database: Data<dyn DatabaseBackend>,
+    storage: Data<dyn StorageBackend>,
+    operations: Data<PhotoOperations>,
 }
 
 impl Application {
@@ -54,16 +59,34 @@ impl Application {
             .collect();
         let session_key = Key::from(&key_bytes);
 
+        let database: Data<dyn DatabaseBackend> = Data::from(Arc::from(database_backend));
+        let storage: Data<dyn StorageBackend> = Data::from(Arc::from(storage_backend));
+        let operations = Data::new(PhotoOperations::default());
+        // Finish abandoned operations before serving requests. A temporary
+        // backend outage should not prevent the app from starting.
+        if let Err(error) = operations
+            .recover_incomplete(database.get_ref(), storage.get_ref())
+            .await
+        {
+            tracing::warn!(error = ?error, "startup photo recovery failed; will retry");
+        }
         let server = run(
             listener,
             template_renderer,
-            database_backend,
-            storage_backend,
+            database.clone(),
+            storage.clone(),
+            operations.clone(),
             configuration.admin.clone(),
             session_key,
         )
         .await?;
-        Ok(Self { port, server })
+        Ok(Self {
+            port,
+            server,
+            database,
+            storage,
+            operations,
+        })
     }
 
     pub fn port(&self) -> u16 {
@@ -71,21 +94,39 @@ impl Application {
     }
 
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        self.server.await
+        let Self {
+            server,
+            database,
+            storage,
+            operations,
+            ..
+        } = self;
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(300));
+        interval.tick().await; // Startup already performed the first pass.
+        tokio::pin!(server);
+        loop {
+            tokio::select! {
+                result = &mut server => return result,
+                _ = interval.tick() => {
+                    if let Err(error) = operations.recover_incomplete(database.get_ref(), storage.get_ref()).await {
+                        tracing::warn!(error = ?error, "photo recovery failed; will retry");
+                    }
+                }
+            }
+        }
     }
 }
 
 async fn run(
     listener: TcpListener,
     template_renderer: Box<dyn TemplateRenderer>,
-    database: Box<dyn DatabaseBackend>,
-    storage: Box<dyn StorageBackend>,
+    database: Data<dyn DatabaseBackend>,
+    storage: Data<dyn StorageBackend>,
+    operations: Data<PhotoOperations>,
     admin: crate::configuration::AdminSettings,
     session_key: Key,
 ) -> Result<Server, anyhow::Error> {
     let template_renderer = Data::new(template_renderer);
-    let database_repository = Data::new(database);
-    let storage_backend = Data::new(storage);
     let admin = Data::new(admin);
 
     let server = HttpServer::new(move || {
@@ -130,8 +171,9 @@ async fn run(
             // --- catch-all 404 ---
             .default_service(web::to(frontend::not_found))
             .app_data(template_renderer.clone())
-            .app_data(database_repository.clone())
-            .app_data(storage_backend.clone())
+            .app_data(database.clone())
+            .app_data(storage.clone())
+            .app_data(operations.clone())
             .app_data(admin.clone())
     })
     .listen(listener)?

@@ -11,7 +11,7 @@ use actix_web::{HttpResponse, web::Data};
 ///
 /// This is the endpoint the blog fetches to render its "Galleries" page.
 pub async fn list_galleries(
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let galleries = database.list_galleries().await?;
     Ok(HttpResponse::Ok().json(galleries))

@@ -19,7 +19,7 @@ struct PageContext<'a> {
 
 pub async fn get_gallery_page(
     templates: Data<Box<dyn TemplateRenderer>>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;

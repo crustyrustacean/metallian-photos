@@ -2,7 +2,7 @@
 
 use crate::auth::require_login;
 use crate::database::DatabaseBackend;
-use crate::services::create_photo_from_bytes;
+use crate::services::PhotoOperations;
 use crate::storage::StorageBackend;
 use crate::template::TemplateRenderer;
 use crate::utils::{e400, e500};
@@ -57,8 +57,9 @@ pub async fn get_upload_page(
 /// post-submit experience.
 pub async fn post_upload(
     MultipartForm(form): MultipartForm<UploadForm>,
-    database: Data<Box<dyn DatabaseBackend>>,
-    storage: Data<Box<dyn StorageBackend>>,
+    database: Data<dyn DatabaseBackend>,
+    storage: Data<dyn StorageBackend>,
+    operations: Data<PhotoOperations>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
@@ -79,15 +80,16 @@ pub async fn post_upload(
             .map_err(e400)?
             .into();
 
-        create_photo_from_bytes(
-            photo_file_bytes,
-            band.clone(),
-            tour.clone(),
-            venue.clone(),
-            database.as_ref().as_ref(),
-            storage.as_ref().as_ref(),
-        )
-        .await?;
+        operations
+            .create_photo_from_bytes(
+                photo_file_bytes,
+                band.clone(),
+                tour.clone(),
+                venue.clone(),
+                database.get_ref(),
+                storage.get_ref(),
+            )
+            .await?;
     }
 
     Ok(HttpResponse::SeeOther()

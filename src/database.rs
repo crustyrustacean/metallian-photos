@@ -35,9 +35,49 @@ impl ResponseError for DatabaseError {
     }
 }
 
+/// Internal lifecycle state. Only ready photos are visible to normal queries.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PhotoStatus {
+    Uploading,
+    Ready,
+    Deleting,
+}
+
+impl PhotoStatus {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Uploading => "uploading",
+            Self::Ready => "ready",
+            Self::Deleting => "deleting",
+        }
+    }
+
+    fn parse(value: &str) -> Result<Self, DatabaseError> {
+        match value {
+            "uploading" => Ok(Self::Uploading),
+            "ready" => Ok(Self::Ready),
+            "deleting" => Ok(Self::Deleting),
+            _ => Err(DatabaseError::Operation(anyhow::anyhow!(
+                "invalid photo status: {value}"
+            ))),
+        }
+    }
+}
+
 #[async_trait]
 pub trait DatabaseBackend: Send + Sync {
     async fn create(&self, photo: Photo) -> Result<Uuid, DatabaseError>;
+    async fn create_uploading(&self, photo: Photo) -> Result<Uuid, DatabaseError>;
+    async fn photo_status(&self, id: Uuid) -> Result<Option<PhotoStatus>, DatabaseError>;
+    async fn transition_status(
+        &self,
+        id: Uuid,
+        from: PhotoStatus,
+        to: PhotoStatus,
+    ) -> Result<bool, DatabaseError>;
+    async fn list_incomplete(&self) -> Result<Vec<(Uuid, PhotoStatus)>, DatabaseError>;
+    async fn delete_incomplete(&self, id: Uuid, status: PhotoStatus)
+    -> Result<bool, DatabaseError>;
     async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError>;
     async fn list(&self) -> Result<Vec<Photo>, DatabaseError>;
     async fn update(&self, id: Uuid, updated_photo: UpdatePhoto) -> Result<(), DatabaseError>;

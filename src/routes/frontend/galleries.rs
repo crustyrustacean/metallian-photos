@@ -38,7 +38,7 @@ struct GalleryPageContext<'a> {
 pub async fn get_public_gallery(
     slug: Path<String>,
     templates: Data<Box<dyn TemplateRenderer>>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let logged_in = identity.map(|i| i.id().is_ok()).unwrap_or(false);
@@ -83,7 +83,7 @@ pub async fn get_public_gallery(
 /// GET /galleries — admin-facing list of all galleries (for the nav link).
 pub async fn get_galleries_index(
     templates: Data<Box<dyn TemplateRenderer>>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let logged_in = identity.map(|i| i.id().is_ok()).unwrap_or(false);

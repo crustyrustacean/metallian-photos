@@ -105,6 +105,43 @@ async fn get_photo_image_returns_jpeg_bytes() {
 }
 
 #[tokio::test]
+async fn non_ready_photos_are_hidden_from_public_endpoints() {
+    let app = spawn_app().await;
+    login(&app).await;
+    let id = create_photo(&app.admin_client, &app.address).await;
+    for status in ["uploading", "deleting"] {
+        sqlx::query("UPDATE photos SET status = ? WHERE id = ?")
+            .bind(status)
+            .bind(id.to_string())
+            .execute(app.database.pool())
+            .await
+            .unwrap();
+        for path in [
+            format!("/api/photos/{id}"),
+            format!("/api/photos/{id}/image"),
+        ] {
+            let response = app
+                .api_client
+                .get(format!("{}{path}", app.address))
+                .send()
+                .await
+                .unwrap();
+            assert_eq!(response.status().as_u16(), 404, "{status}: {path}");
+        }
+        let galleries: serde_json::Value = app
+            .api_client
+            .get(format!("{}/api/galleries", app.address))
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        assert_eq!(galleries.as_array().unwrap().len(), 0);
+    }
+}
+
+#[tokio::test]
 async fn get_photo_image_with_unknown_uuid_returns_404() {
     // Arrange
     let app = spawn_app().await;

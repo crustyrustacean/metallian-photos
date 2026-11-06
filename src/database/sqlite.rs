@@ -1,7 +1,7 @@
 // src/database/sqlite.rs
 
 use crate::configuration::DatabaseSettings;
-use crate::database::{DatabaseBackend, DatabaseError};
+use crate::database::{DatabaseBackend, DatabaseError, PhotoStatus};
 use crate::domain::{Exif, Gallery, Photo, UpdatePhoto};
 use anyhow::Context;
 use async_trait::async_trait;
@@ -86,14 +86,11 @@ impl SqliteRepository {
     pub fn pool(&self) -> &SqlitePool {
         &self.pool
     }
-}
 
-#[async_trait]
-impl DatabaseBackend for SqliteRepository {
-    async fn create(&self, photo: Photo) -> Result<Uuid, DatabaseError> {
+    async fn insert_photo(&self, photo: Photo, status: PhotoStatus) -> Result<Uuid, DatabaseError> {
         sqlx::query(
-            "INSERT INTO photos (id, band, tour, venue, date_time_original, make, model, lens_make, lens_model)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO photos (id, band, tour, venue, date_time_original, make, model, lens_make, lens_model, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(id_as_text(photo.id))
         .bind(photo.band)
@@ -104,42 +101,123 @@ impl DatabaseBackend for SqliteRepository {
         .bind(photo.exif_data.model)
         .bind(photo.exif_data.lens_make)
         .bind(photo.exif_data.lens_model)
+        .bind(status.as_str())
         .execute(&self.pool)
         .await
         .context("Failed to create the photo.")?;
-
         Ok(photo.id)
     }
+}
 
-    async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError> {
-        let row: Option<PhotoRow> = sqlx::query_as("SELECT * FROM photos WHERE id = ?")
+#[async_trait]
+impl DatabaseBackend for SqliteRepository {
+    async fn create(&self, photo: Photo) -> Result<Uuid, DatabaseError> {
+        self.insert_photo(photo, PhotoStatus::Ready).await
+    }
+
+    async fn create_uploading(&self, photo: Photo) -> Result<Uuid, DatabaseError> {
+        self.insert_photo(photo, PhotoStatus::Uploading).await
+    }
+
+    async fn photo_status(&self, id: Uuid) -> Result<Option<PhotoStatus>, DatabaseError> {
+        let status: Option<String> = sqlx::query_scalar("SELECT status FROM photos WHERE id = ?")
             .bind(id_as_text(id))
             .fetch_optional(&self.pool)
             .await
-            .context("Failed to fetch the photo.")?;
+            .context("Failed to read photo status.")?;
+        status.map(|s| PhotoStatus::parse(&s)).transpose()
+    }
+
+    async fn transition_status(
+        &self,
+        id: Uuid,
+        from: PhotoStatus,
+        to: PhotoStatus,
+    ) -> Result<bool, DatabaseError> {
+        if !matches!(
+            (from, to),
+            (
+                PhotoStatus::Uploading,
+                PhotoStatus::Ready | PhotoStatus::Deleting
+            ) | (PhotoStatus::Ready, PhotoStatus::Deleting)
+        ) {
+            return Err(DatabaseError::Operation(anyhow::anyhow!(
+                "invalid photo status transition: {from:?} to {to:?}"
+            )));
+        }
+        let result = sqlx::query("UPDATE photos SET status = ? WHERE id = ? AND status = ?")
+            .bind(to.as_str())
+            .bind(id_as_text(id))
+            .bind(from.as_str())
+            .execute(&self.pool)
+            .await
+            .context("Failed to transition photo status.")?;
+        Ok(result.rows_affected() == 1)
+    }
+
+    async fn list_incomplete(&self) -> Result<Vec<(Uuid, PhotoStatus)>, DatabaseError> {
+        let rows: Vec<(Hyphenated, String)> =
+            sqlx::query_as("SELECT id, status FROM photos WHERE status != 'ready'")
+                .fetch_all(&self.pool)
+                .await
+                .context("Failed to list incomplete photos.")?;
+        rows.into_iter()
+            .map(|(id, status)| Ok((id.into_uuid(), PhotoStatus::parse(&status)?)))
+            .collect()
+    }
+
+    async fn delete_incomplete(
+        &self,
+        id: Uuid,
+        status: PhotoStatus,
+    ) -> Result<bool, DatabaseError> {
+        if status != PhotoStatus::Deleting {
+            return Err(DatabaseError::Operation(anyhow::anyhow!(
+                "only deleting photos may be removed during cleanup"
+            )));
+        }
+        let result = sqlx::query("DELETE FROM photos WHERE id = ? AND status = ?")
+            .bind(id_as_text(id))
+            .bind(status.as_str())
+            .execute(&self.pool)
+            .await
+            .context("Failed to remove incomplete photo.")?;
+        Ok(result.rows_affected() == 1)
+    }
+
+    async fn read(&self, id: Uuid) -> Result<Photo, DatabaseError> {
+        let row: Option<PhotoRow> =
+            sqlx::query_as("SELECT * FROM photos WHERE id = ? AND status = 'ready'")
+                .bind(id_as_text(id))
+                .fetch_optional(&self.pool)
+                .await
+                .context("Failed to fetch the photo.")?;
         let row = row.ok_or_else(|| DatabaseError::NotFound(id.to_string()))?;
 
         Ok(row.into())
     }
 
     async fn list(&self) -> Result<Vec<Photo>, DatabaseError> {
-        let rows: Vec<PhotoRow> = sqlx::query_as::<_, PhotoRow>("SELECT * FROM photos")
-            .fetch_all(&self.pool)
-            .await
-            .context("Failed to list the photos.")?;
+        let rows: Vec<PhotoRow> =
+            sqlx::query_as::<_, PhotoRow>("SELECT * FROM photos WHERE status = 'ready'")
+                .fetch_all(&self.pool)
+                .await
+                .context("Failed to list the photos.")?;
 
         Ok(rows.into_iter().map(Photo::from).collect())
     }
 
     async fn update(&self, id: Uuid, updated_photo: UpdatePhoto) -> Result<(), DatabaseError> {
-        sqlx::query("UPDATE photos SET band = ?, tour = ?, venue = ? WHERE id = ?")
-            .bind(updated_photo.band)
-            .bind(updated_photo.tour)
-            .bind(updated_photo.venue)
-            .bind(id_as_text(id))
-            .execute(&self.pool)
-            .await
-            .context("Failed to update the photo.")?;
+        sqlx::query(
+            "UPDATE photos SET band = ?, tour = ?, venue = ? WHERE id = ? AND status = 'ready'",
+        )
+        .bind(updated_photo.band)
+        .bind(updated_photo.tour)
+        .bind(updated_photo.venue)
+        .bind(id_as_text(id))
+        .execute(&self.pool)
+        .await
+        .context("Failed to update the photo.")?;
 
         Ok(())
     }
@@ -156,8 +234,8 @@ impl DatabaseBackend for SqliteRepository {
 
     async fn list_galleries(&self) -> Result<Vec<Gallery>, DatabaseError> {
         let rows: Vec<GalleryRow> = sqlx::query_as::<_, GalleryRow>(
-            "SELECT band, COUNT(*) as photo_count, (SELECT id FROM photos p2 WHERE p2.band = photos.band ORDER BY rowid DESC LIMIT 1) as cover_photo_id
-             FROM photos GROUP BY band ORDER BY band ASC",
+            "SELECT band, COUNT(*) as photo_count, (SELECT id FROM photos p2 WHERE p2.band = photos.band AND p2.status = 'ready' ORDER BY rowid DESC LIMIT 1) as cover_photo_id
+             FROM photos WHERE status = 'ready' GROUP BY band ORDER BY band ASC",
         )
         .fetch_all(&self.pool)
         .await
@@ -175,12 +253,13 @@ impl DatabaseBackend for SqliteRepository {
     }
 
     async fn list_photos_by_band(&self, band: &str) -> Result<Vec<Photo>, DatabaseError> {
-        let rows: Vec<PhotoRow> =
-            sqlx::query_as::<_, PhotoRow>("SELECT * FROM photos WHERE band = ? ORDER BY rowid ASC")
-                .bind(band)
-                .fetch_all(&self.pool)
-                .await
-                .context("Failed to list photos by band.")?;
+        let rows: Vec<PhotoRow> = sqlx::query_as::<_, PhotoRow>(
+            "SELECT * FROM photos WHERE band = ? AND status = 'ready' ORDER BY rowid ASC",
+        )
+        .bind(band)
+        .fetch_all(&self.pool)
+        .await
+        .context("Failed to list photos by band.")?;
 
         Ok(rows.into_iter().map(Photo::from).collect())
     }

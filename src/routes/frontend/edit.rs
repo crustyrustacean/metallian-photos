@@ -49,7 +49,7 @@ fn caption_context(id: Uuid, band: &str, tour: &str, venue: &str) -> serde_json:
 /// handler below.
 pub async fn edit_photo(
     path: Path<String>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     templates: Data<Box<dyn TemplateRenderer>>,
     identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {
@@ -74,7 +74,7 @@ pub async fn edit_photo(
 pub async fn update_photo(
     path: Path<String>,
     ReadSignals(updates): ReadSignals<UpdatePhoto>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     templates: Data<Box<dyn TemplateRenderer>>,
     identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {
@@ -100,7 +100,7 @@ pub async fn update_photo(
 /// Morphs the edit form back into the display caption without saving.
 pub async fn cancel_edit(
     path: Path<String>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     templates: Data<Box<dyn TemplateRenderer>>,
     identity: Option<Identity>,
 ) -> Result<Sse, actix_web::Error> {

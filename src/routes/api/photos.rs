@@ -3,7 +3,7 @@
 use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::domain::UpdatePhoto;
-use crate::services::create_photo_from_bytes;
+use crate::services::PhotoOperations;
 use crate::storage::StorageBackend;
 use crate::utils::{e400, e500};
 use actix_identity::Identity;
@@ -26,8 +26,9 @@ pub struct CreatePhotoForm {
 /// POST /api/photos
 pub async fn create_photo(
     MultipartForm(form): MultipartForm<CreatePhotoForm>,
-    database: Data<Box<dyn DatabaseBackend>>,
-    storage: Data<Box<dyn StorageBackend>>,
+    database: Data<dyn DatabaseBackend>,
+    storage: Data<dyn StorageBackend>,
+    operations: Data<PhotoOperations>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
@@ -43,15 +44,16 @@ pub async fn create_photo(
         .map_err(e400)?
         .into();
 
-    let id = create_photo_from_bytes(
-        photo_file_bytes,
-        form.band.into_inner(),
-        form.tour.into_inner(),
-        form.venue.into_inner(),
-        database.as_ref().as_ref(),
-        storage.as_ref().as_ref(),
-    )
-    .await?;
+    let id = operations
+        .create_photo_from_bytes(
+            photo_file_bytes,
+            form.band.into_inner(),
+            form.tour.into_inner(),
+            form.venue.into_inner(),
+            database.get_ref(),
+            storage.get_ref(),
+        )
+        .await?;
 
     Ok(HttpResponse::Ok().json(id))
 }
@@ -59,8 +61,7 @@ pub async fn create_photo(
 /// GET /api/photos/{id}
 pub async fn read_photo(
     path: Path<String>,
-    database: Data<Box<dyn DatabaseBackend>>,
-    _storage: Data<Box<dyn StorageBackend>>,
+    database: Data<dyn DatabaseBackend>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let photo = database.read(id).await?;
@@ -74,9 +75,11 @@ pub async fn read_photo(
 /// that the gallery `<img>` tags and the blog will both pull from.
 pub async fn get_photo_image(
     path: Path<String>,
-    storage: Data<Box<dyn StorageBackend>>,
+    database: Data<dyn DatabaseBackend>,
+    storage: Data<dyn StorageBackend>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
+    database.read(id).await?;
     let bytes = storage.find(id).await?;
 
     Ok(HttpResponse::Ok().content_type("image/jpeg").body(bytes))
@@ -86,7 +89,7 @@ pub async fn get_photo_image(
 pub async fn update_photo(
     path: Path<String>,
     form: Form<UpdatePhoto>,
-    database: Data<Box<dyn DatabaseBackend>>,
+    database: Data<dyn DatabaseBackend>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
@@ -106,14 +109,16 @@ pub async fn update_photo(
 /// DELETE /api/photos/{id}
 pub async fn delete_photo(
     path: Path<String>,
-    database: Data<Box<dyn DatabaseBackend>>,
-    storage: Data<Box<dyn StorageBackend>>,
+    database: Data<dyn DatabaseBackend>,
+    storage: Data<dyn StorageBackend>,
+    operations: Data<PhotoOperations>,
     identity: Option<Identity>,
 ) -> Result<HttpResponse, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
-    storage.delete(id).await?;
-    database.delete(id).await?;
+    operations
+        .delete_photo(id, database.get_ref(), storage.get_ref())
+        .await?;
 
     Ok(HttpResponse::Ok().status(StatusCode::NO_CONTENT).finish())
 }
