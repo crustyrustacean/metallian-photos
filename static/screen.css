@@ -1,538 +1,627 @@
-/* ===== Design Tokens ===== */
-:root {
-  /* Colors — cardinal red accent on dark, matching crusty-metallian.net */
-  --accent: oklch(50% 0.2 15);
-  --bg-dark: oklch(10% 0 0);
-  --bg-card: oklch(15% 0 0);
-  --text-primary: oklch(90% 0 0);
-  --text-muted: oklch(60% 0 0);
-  --border: oklch(25% 0 0);
+/* metallian-photos stylesheet.
+ *
+ * The visual language is the same as crusty-metallian.net: same tokens, same
+ * layer order, same header/nav/footer treatment. Keep the token block and the
+ * reset in step with the blog's styles/main.scss — they are meant to be the
+ * same design, not two similar ones. Anything below the base layer is this
+ * site's own (upload form, inline caption editing, login).
+ */
+@layer reset, theme, base, components, utilities;
 
-  /* Spacing scale */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 2rem;
-  --space-xl: 3rem;
+/* ===== Theme Layer ===== */
+@layer theme {
+  /* Oswald, self-hosted: the latin subset of the variable font (400-700) is
+     one 21 KB woff2. Serving it from this origin keeps headings in the right
+     face without a render-blocking request to fonts.googleapis.com. */
+  @font-face {
+    font-family: 'Oswald';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/static/oswald-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+      U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+      U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
 
-  /* Typography */
-  --font-body: system-ui, sans-serif;
-  --font-heading: 'Oswald', sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  :root {
+    /* Cardinal red, lightened to clear 4.5:1 on every surface it sits on:
+       5.8:1 on --bg-dark, 5.6:1 on --bg-card, 4.5:1 on --border. */
+    --accent: oklch(65% 0.17 15);
+    /* Deeper red for fills that sit *behind* light text (::selection, hover
+       chips, submit buttons) where the contrast direction is reversed. */
+    --accent-deep: oklch(45% 0.19 15);
+    --bg-dark: oklch(10% 0 0);
+    --bg-card: oklch(15% 0 0);
+    --text-primary: oklch(90% 0 0);
+    /* 6.4:1 on --bg-dark, 4.9:1 on --border. */
+    --text-muted: oklch(65% 0 0);
+    --border: oklch(25% 0 0);
 
-  /* Layout */
-  --content-width: 65ch;
-  --gallery-width: 1200px;
-  --border-width: 2px;
-  --radius: 4px;
-}
+    /* Spacing scale */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
 
-/* ===== Reset ===== */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
+    /* Typography */
+    --font-body: system-ui, sans-serif;
+    --font-heading: 'Oswald', sans-serif;
+    --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+    --line-height: 1.6;
 
-*:not(dialog) {
-  margin: 0;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    interpolate-size: allow-keywords;
+    /* Layout */
+    --content-width: 65ch;
+    --gallery-width: 1200px;
+    --border-width: 2px;
+    --radius: 4px;
   }
 }
 
-html {
-  hanging-punctuation: first last;
-}
-
-body {
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
-
-img, picture, video, canvas, svg {
-  display: block;
-  max-width: 100%;
-}
-
-input, button, textarea, select {
-  font: inherit;
-}
-
-p, h1, h2, h3, h4, h5, h6 {
-  overflow-wrap: break-word;
-}
-
-p {
-  text-wrap: pretty;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  text-wrap: balance;
-}
-
-#root, #__next {
-  isolation: isolate;
-}
-
-/* ===== Base ===== */
-body {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-body);
-  background-color: var(--bg-dark);
-  color: var(--text-primary);
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
-}
-
-a {
-  color: var(--accent);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-a:hover {
-  color: color-mix(in oklch, var(--accent), white 20%);
-  text-decoration: underline;
-}
-
-a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-::selection {
-  background: var(--accent);
-  color: var(--text-primary);
-}
-
-/* ===== Header ===== */
-header {
-  text-align: center;
-  padding: var(--space-lg) var(--space-md);
-  border-bottom: var(--border-width) solid var(--border);
-}
-
-header h1 {
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
-}
-
-header h2 {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  text-transform: none;
-  letter-spacing: normal;
-  margin-top: var(--space-xs);
-}
-
-/* ===== Navigation ===== */
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-sm) var(--space-lg);
-  padding: var(--space-md);
-  border-bottom: var(--border-width) solid var(--border);
-}
-
-nav a {
-  font-family: var(--font-heading);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-nav a:hover {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-/* ===== Main ===== */
-main {
-  flex: 1;
-  width: min(var(--content-width), 100% - var(--space-lg));
-  margin-inline: auto;
-  padding-block: var(--space-lg);
-}
-
-main h3 {
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  margin-bottom: var(--space-lg);
-}
-
-/* Gallery needs wider layout */
-main:has(.gallery-grid),
-main:has(.gallery-index) {
-  width: min(var(--gallery-width), 100% - var(--space-lg));
-}
-
-/* ===== Footer ===== */
-footer {
-  margin-top: auto;
-  text-align: center;
-  padding: var(--space-md);
-  border-top: var(--border-width) solid var(--border);
-  color: var(--text-muted);
-  font-size: 0.9rem;
-}
-
-/* ===== Flash message (upload success) ===== */
-[data-show] {
-  background: var(--bg-card);
-  border-inline-start: 3px solid var(--accent);
-  padding: var(--space-md) var(--space-lg);
-  margin-bottom: var(--space-lg);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  cursor: pointer;
-  color: var(--text-primary);
-}
-
-/* ===== Gallery ===== */
-.gallery-grid {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
-  gap: var(--space-lg);
-}
-
-.gallery-grid > li {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.gallery-grid > li:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
-}
-
-.gallery-grid img {
-  width: 100%;
-  height: auto;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.gallery-grid img:hover {
-  opacity: 0.9;
-}
-
-.gallery-grid [id^="caption-"] {
-  padding: var(--space-md);
-}
-
-.gallery-grid [id^="caption-"] > p {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  letter-spacing: 0.03em;
-  color: var(--text-primary);
-  line-height: 1.4;
-}
-
-/* ===== Inline edit form (Datastar morph target) ===== */
-.gallery-grid [id^="caption-"] input {
-  width: 100%;
-  padding: var(--space-xs) var(--space-sm);
-  margin-bottom: var(--space-xs);
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  color: var(--text-primary);
-}
-
-.gallery-grid [id^="caption-"] input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-/* ===== Buttons ===== */
-button {
-  padding: var(--space-xs) var(--space-md);
-  background: var(--border);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-button:hover {
-  background: var(--accent);
-  color: var(--text-primary);
-}
-
-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Gallery item buttons sit in a row inside the caption area */
-.gallery-grid [id^="caption-"] button {
-  margin-top: var(--space-sm);
-  margin-inline-end: var(--space-xs);
-}
-
-/* ===== Upload form ===== */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  max-width: 400px;
-}
-
-form label {
-  font-family: var(--font-heading);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-form input[type="text"],
-form input:not([type]) {
-  padding: var(--space-sm);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  color: var(--text-primary);
-}
-
-form input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-form input[type="file"] {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-form button[type="submit"] {
-  margin-top: var(--space-sm);
-  align-self: flex-start;
-  background: var(--accent);
-  border-color: var(--accent);
-  font-weight: 500;
-}
-
-form button[type="submit"]:hover {
-  background: color-mix(in oklch, var(--accent), white 15%);
-}
-
-/* ===== Article cards (index/instructions) ===== */
-article {
-  background: var(--bg-card);
-  padding: var(--space-lg);
-  margin-bottom: var(--space-lg);
-  border-inline-start: 3px solid var(--accent);
-  border-radius: 0 var(--radius) var(--radius) 0;
-}
-
-article ul {
-  padding-inline-start: var(--space-lg);
-  margin-top: var(--space-sm);
-}
-
-article li {
-  margin-bottom: var(--space-xs);
-}
-
-article li::marker {
-  color: var(--accent);
-}
-
-/* ===== Galleries Index ===== */
-.gallery-index {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
-  gap: var(--space-lg);
-}
-
-.gallery-card {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.gallery-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
-}
-
-.gallery-card a {
-  display: block;
-  color: var(--text-primary);
-  text-decoration: none;
-}
-
-.gallery-card img {
-  width: 100%;
-  height: auto;
-}
-
-.gallery-card-info {
-  padding: var(--space-md);
-}
-
-.gallery-card-band {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  letter-spacing: 0.03em;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xs);
-}
-
-.gallery-card-count {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-/* ===== Public Gallery (read-only) ===== */
-.photo-info {
-  padding: var(--space-md);
-}
-
-.photo-info > p {
-  margin-bottom: var(--space-xs);
-  line-height: 1.4;
-}
-
-.photo-info > p:first-child {
-  font-family: var(--font-heading);
-  font-size: 1rem;
-  letter-spacing: 0.03em;
-  color: var(--text-primary);
-}
-
-.photo-info > p:nth-child(2),
-.photo-info > p:nth-child(3) {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.gallery-back {
-  margin-top: var(--space-xl);
-}
-
-/* ===== Index hero (featured concert photo) ===== */
-main:has(figure) {
-  width: min(var(--gallery-width), 100% - var(--space-lg));
-}
-
-main figure {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-}
-
-main figure img {
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius);
-  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
-}
-
-main figure figcaption {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-/* ===== EXIF hover overlay ===== */
-.photo-thumb {
-  position: relative;
-}
-
-.exif-overlay {
-  position: absolute;
-  inset-block-end: 0;
-  inset-inline: 0;
-  padding: var(--space-sm) var(--space-md);
-  background: linear-gradient(to top, oklch(0% 0 0 / 0.85), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
-
-.photo-thumb:hover .exif-overlay {
-  opacity: 1;
-}
-
-.exif-overlay p {
-  font-size: 0.75rem;
-  color: oklch(90% 0 0);
-  margin: 0;
-  line-height: 1.3;
-  text-shadow: 0 1px 2px oklch(0% 0 0);
-}
-
-/* ===== Login page ===== */
-.login-wrapper {
-  display: flex;
-  justify-content: center;
-  padding-block: var(--space-xl);
-}
-
-.login-form {
-  background: var(--bg-card);
-  padding: var(--space-lg);
-  border-radius: var(--radius);
-  border-inline-start: 3px solid var(--accent);
-  width: 100%;
-  max-width: 360px;
-}
-
-.login-form h3 {
-  margin-bottom: var(--space-lg);
-  text-align: center;
-}
-
-.login-error {
-  color: var(--accent);
-  font-size: 0.85rem;
-  margin-bottom: var(--space-md);
-  text-align: center;
-}
-
-.login-form input[type="password"] {
-  padding: var(--space-sm);
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  color: var(--text-primary);
-}
-
-/* ===== Error page ===== */
-.error-page {
-  text-align: center;
-  padding-block: var(--space-xl);
-}
-
-.error-page h3 {
-  font-size: 3rem;
-  color: var(--accent);
-  margin-bottom: var(--space-md);
-}
-
-.error-page p {
-  color: var(--text-muted);
-  margin-bottom: var(--space-md);
+/* ===== Reset Layer ===== */
+@layer reset {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  *:not(dialog) {
+    margin: 0;
+  }
+
+  html {
+    interpolate-size: allow-keywords;
+    hanging-punctuation: first last;
+  }
+
+  body {
+    line-height: var(--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img, picture, video, canvas, svg {
+    display: block;
+    max-inline-size: 100%;
+  }
+
+  /* width/height attributes give the browser an intrinsic ratio; without
+     block-size:auto, max-inline-size squeezes the image out of shape. */
+  img {
+    block-size: auto;
+  }
+
+  input, button, textarea, select {
+    font: inherit;
+  }
+
+  p, h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+
+  #root, #__next {
+    isolation: isolate;
+  }
+}
+
+/* ===== Base Layer ===== */
+@layer base {
+  body {
+    min-block-size: 100dvh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: color-mix(in oklch, var(--accent), white 20%);
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  }
+
+  ul, ol {
+    padding-inline-start: var(--space-lg);
+  }
+
+  ::selection {
+    background: var(--accent-deep);
+    color: var(--text-primary);
+  }
+}
+
+/* ===== Components Layer ===== */
+@layer components {
+  /* Site Header: title + its own nav, one bordered block, centred. */
+  #header {
+    text-align: center;
+    padding: var(--space-lg) var(--space-md);
+    border-block-end: var(--border-width) solid var(--border);
+
+    & h1 {
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+
+      & a {
+        color: var(--text-primary);
+        text-decoration: none;
+
+        &:hover {
+          color: var(--accent);
+        }
+      }
+    }
+
+    /* The sub-header is a sentence, not a heading: override the display face
+       the `h1..h6` rule would otherwise apply. */
+    & h2 {
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-family: var(--font-body);
+      text-transform: none;
+      letter-spacing: normal;
+      margin-block-start: var(--space-xs);
+    }
+
+    & nav {
+      margin-block-start: var(--space-md);
+
+      & ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--space-sm) var(--space-lg);
+      }
+
+      & a {
+        font-family: var(--font-heading);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+
+        &:hover {
+          color: var(--accent);
+          text-decoration: none;
+        }
+      }
+    }
+  }
+
+  /* Main Content */
+  #main {
+    flex: 1;
+    inline-size: min(var(--content-width), 100% - var(--space-lg));
+    margin-inline: auto;
+    padding-block: var(--space-lg);
+
+    & h2 {
+      margin-block-end: var(--space-lg);
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      border-block-end: 2px solid var(--accent);
+      padding-block-end: var(--space-sm);
+    }
+
+    /* Section headings on these pages are h3 (the header owns the h1/h2). */
+    & h3 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin-block-end: var(--space-lg);
+    }
+
+    /* A photo grid needs the wide measure: the single-gallery page and the
+       index hero. The galleries *index* deliberately does not — on
+       crusty-metallian.net it renders at the content measure, and the two
+       pages are meant to look alike. */
+    &:has(.gallery-grid),
+    &:has(figure) {
+      inline-size: min(var(--gallery-width), 100% - var(--space-lg));
+    }
+  }
+
+  /* Site Footer */
+  #footer {
+    margin-block-start: auto;
+    text-align: center;
+    padding: var(--space-md);
+    border-block-start: var(--border-width) solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+
+    /* One inline link in a block of muted text: underline it so colour is
+       not the only cue (WCAG 1.4.1). */
+    & a {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+  }
+
+  /* ===== Article cards ===== */
+  article {
+    container-type: inline-size;
+    background: var(--bg-card);
+    padding: var(--space-lg);
+    margin-block-end: var(--space-lg);
+    border-inline-start: 3px solid var(--accent);
+
+    & ul {
+      padding-inline-start: var(--space-lg);
+      margin-block-start: var(--space-sm);
+    }
+
+    & li {
+      margin-block-end: var(--space-xs);
+    }
+
+    & li::marker {
+      color: var(--accent);
+    }
+
+    @container (inline-size < 400px) {
+      padding: var(--space-md);
+    }
+  }
+
+  /* ===== Flash message (upload success) ===== */
+  [data-show] {
+    background: var(--bg-card);
+    border-inline-start: 3px solid var(--accent);
+    padding: var(--space-md) var(--space-lg);
+    margin-block-end: var(--space-lg);
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+
+  /* ===== Gallery grid (single gallery) ===== */
+  .gallery-grid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+    gap: var(--space-lg);
+
+    & > li {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
+      }
+    }
+
+    & img {
+      inline-size: 100%;
+      block-size: auto;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    /* The caption block is the editable region; `id^="caption-"` is how the
+       template marks it, so it is selected the same way here. */
+    & [id^="caption-"] {
+      padding: var(--space-md);
+    }
+
+    & [id^="caption-"] input {
+      inline-size: 100%;
+      padding: var(--space-xs) var(--space-sm);
+      margin-block-end: var(--space-xs);
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-primary);
+
+      &:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  /* ===== Galleries index ===== */
+  .gallery-index {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: var(--space-lg);
+    align-content: start;
+  }
+
+  .gallery-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
+    }
+
+    & a {
+      display: block;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    & img {
+      inline-size: 100%;
+      block-size: auto;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+    }
+  }
+
+  .gallery-card-info {
+    padding: var(--space-md);
+  }
+
+  .gallery-card-band {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    letter-spacing: 0.03em;
+    color: var(--text-primary);
+    margin-block-end: var(--space-xs);
+  }
+
+  .gallery-card-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* ===== Photo caption block (read-only view) ===== */
+  .photo-info {
+    padding: var(--space-md);
+
+    & > p {
+      margin-block-end: var(--space-xs);
+      line-height: 1.4;
+
+      &:first-child {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+        color: var(--text-primary);
+        margin-block-end: var(--space-sm);
+      }
+
+      &:nth-child(2),
+      &:nth-child(3) {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  .gallery-back {
+    margin-block-start: var(--space-xl);
+  }
+
+  /* ===== Index hero ===== */
+  main figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+
+    & img {
+      inline-size: 100%;
+      block-size: auto;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px oklch(0% 0 0 / 0.4);
+    }
+
+    & figcaption {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+  }
+
+  /* ===== EXIF hover overlay ===== */
+  .photo-thumb {
+    position: relative;
+  }
+
+  .exif-overlay {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline: 0;
+    padding: var(--space-sm) var(--space-md);
+    background: linear-gradient(to top, oklch(0% 0 0 / 0.85), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+
+    & p {
+      font-size: 0.75rem;
+      color: var(--text-primary);
+      margin: 0;
+      line-height: 1.3;
+      text-shadow: 0 1px 2px oklch(0% 0 0);
+    }
+  }
+
+  .photo-thumb:hover .exif-overlay {
+    opacity: 1;
+  }
+
+  /* ===== Buttons ===== */
+  button {
+    padding: var(--space-xs) var(--space-md);
+    background: var(--border);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: var(--accent-deep);
+      color: var(--text-primary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  }
+
+  /* Gallery item buttons sit in a row inside the caption area. */
+  .gallery-grid [id^="caption-"] button {
+    margin-block-start: var(--space-sm);
+    margin-inline-end: var(--space-xs);
+  }
+
+  /* ===== Upload form ===== */
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    max-inline-size: 400px;
+
+    & label {
+      font-family: var(--font-heading);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    & input[type="text"],
+    & input:not([type]) {
+      padding: var(--space-sm);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-primary);
+    }
+
+    & input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    & input[type="file"] {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* The primary action in the form. --accent-deep behind light text; the
+       lighter --accent would not carry 4.5:1 against it. */
+    & button[type="submit"] {
+      margin-block-start: var(--space-sm);
+      align-self: flex-start;
+      background: var(--accent-deep);
+      border-color: var(--accent-deep);
+      font-weight: 500;
+
+      &:hover {
+        background: color-mix(in oklch, var(--accent-deep), white 12%);
+      }
+    }
+  }
+
+  /* ===== Login page ===== */
+  .login-wrapper {
+    display: flex;
+    justify-content: center;
+    padding-block: var(--space-xl);
+  }
+
+  .login-form {
+    background: var(--bg-card);
+    padding: var(--space-lg);
+    border-radius: var(--radius);
+    border-inline-start: 3px solid var(--accent);
+    inline-size: 100%;
+    max-inline-size: 360px;
+
+    & h3 {
+      margin-block-end: var(--space-lg);
+      text-align: center;
+    }
+
+    & input[type="password"] {
+      padding: var(--space-sm);
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-primary);
+    }
+  }
+
+  .login-error {
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-block-end: var(--space-md);
+    text-align: center;
+  }
+
+  /* ===== Error page ===== */
+  .error-page {
+    text-align: center;
+    padding-block: var(--space-xl);
+
+    & h3 {
+      font-size: 3rem;
+      color: var(--accent);
+      margin-block-end: var(--space-md);
+    }
+
+    & p {
+      color: var(--text-muted);
+      margin-block-end: var(--space-md);
+    }
+  }
+}
+
+/* ===== Utilities Layer ===== */
+@layer utilities {
+  .visually-hidden {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    block-size: 1px;
+    inline-size: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+  }
 }

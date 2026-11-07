@@ -3,35 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/static/screen.css?v=7" media="screen">
+
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="icon" href="/static/favicon.ico" sizes="32x32">
+
+    <!-- Oswald is self-hosted (see static/screen.css) and preloaded so headings
+         paint in the right face on first view. -->
+    <link rel="preload" href="/static/oswald-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+    <link rel="stylesheet" type="text/css" href="/static/screen.css?v=8" media="screen">
     <title>Metallian Photos | {{ title }}</title>
 </head>
 <body>
-    <header>
+    <!-- header section: title and nav share one bordered block, as on
+         crusty-metallian.net -->
+    <header id="header">
         <h1>{{ header }}</h1>
         <h2>{{ sub_header }}</h2>
+        <nav aria-label="Main">
+            <ul>
+                <li><a href="/">Home</a></li>
+                {% if logged_in %}
+                <li><a href="/upload">Upload</a></li>
+                <li><a href="/gallery">Gallery</a></li>
+                {% endif %}
+                <li><a href="/galleries">Galleries</a></li>
+                <li><a href="https://crusty-metallian.net">Crusty Metallian</a></li>
+                {% if logged_in %}
+                <li><a href="/logout">Logout</a></li>
+                {% else %}
+                <li><a href="/login">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
     </header>
-    <nav>
-        <a href="/">Home</a>
-        {% if logged_in %}
-        <a href="/upload">Upload</a>
-        <a href="/gallery">Gallery</a>
-        {% endif %}
-        <a href="/galleries">Galleries</a>
-        <a href="https://crusty-metallian.net">Crusty Metallian</a>
-        {% if logged_in %}
-        <a href="/logout">Logout</a>
-        {% else %}
-        <a href="/login">Login</a>
-        {% endif %}
-    </nav>
-    <main>
+    <main id="main">
         {% block content %}{% endblock content %}
     </main>
-    <footer>
+    <footer id="footer">
         <p>&copy; 2026 | Jeffery D. Mitchell | All Rights Reserved</p>
     </footer>
     <script type="module" src="/static/datastar.js?v=5"></script>
