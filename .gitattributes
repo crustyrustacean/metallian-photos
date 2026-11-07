@@ -1,0 +1,24 @@
+# Migration SQL is checksummed by sqlx over the raw file bytes, and the checksum
+# recorded in a production database is immutable. With core.autocrlf=true on
+# Windows, these files were checked out with CRLF and the shipped image carried
+# CRLF, so 20260625045653 was recorded that way.
+#
+# 20261028000000 was applied from an image that carried LF, so it is recorded
+# as LF. The two disagree, and the only thing that satisfies both is pinning
+# each file's line endings explicitly rather than letting autocrlf decide.
+#
+# Do not rewrite either migration. If one must change, the appended form
+# (ALTER/CREATE that is idempotent) is the way, not an edit to these bytes.
+migrations/20260625045653_photos*.sql            text eol=crlf
+migrations/20261028000000_photo_status*.sql      text eol=lf
+
+# Source and templates are read by the compiler and Tera, which do not care,
+# but normalising them keeps diffs from churning on Windows.
+*.rs    text eol=lf
+*.toml  text eol=lf
+*.html  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+*.md    text eol=lf
+*.css   text eol=lf
+*.js    text eol=lf
