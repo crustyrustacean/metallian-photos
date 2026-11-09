@@ -7,16 +7,12 @@
     <meta name="theme-color" content="#1a1a2e">
     <link rel="icon" href="/static/favicon.ico" sizes="32x32">
 
-    <!-- Oswald is self-hosted (see static/screen.css) and preloaded so headings
-         paint in the right face on first view. -->
     <link rel="preload" href="/static/oswald-latin.woff2" as="font" type="font/woff2" crossorigin>
 
     <link rel="stylesheet" type="text/css" href="/static/screen.css?v=8" media="screen">
     <title>Metallian Photos | {{ title }}</title>
 </head>
 <body>
-    <!-- header section: title and nav share one bordered block, as on
-         crusty-metallian.net -->
     <header id="header">
         <h1>{{ header }}</h1>
         <h2>{{ sub_header }}</h2>
@@ -41,7 +37,7 @@
         {% block content %}{% endblock content %}
     </main>
     <footer id="footer">
-        <p>&copy; 2026 | Jeffery D. Mitchell | All Rights Reserved</p>
+        <p>&copy; 2026 | Jeffery D. Mitchell | All Rights Reserved | Site built with: <a href="https://actix.rs">Actix Web</a>, <a href="https://keats.github.io/tera">Tera</a>, and <a href="https://data-star.dev">Datastar</a></p>
     </footer>
     <script type="module" src="/static/datastar.js?v=5"></script>
 </body>
