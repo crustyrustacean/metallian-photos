@@ -7,6 +7,7 @@ pub mod edit;
 pub mod galleries;
 pub mod gallery;
 pub mod index;
+mod sse;
 pub mod upload;
 
 pub use delete::*;

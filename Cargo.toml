@@ -1,6 +1,6 @@
 [package]
 name = "metallian-photos"
-version = "0.12.4"
+version = "0.12.5"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
@@ -54,6 +54,8 @@ tracing-log = "0.2"
 tracing-bunyan-formatter = "0.3"
 tracing-subscriber = { version = "0.3", features = ["registry", "env-filter"] }
 uuid = { version = "1", features = ["v4", "serde"] }
+actix-web-lab = { git = "https://github.com/crustyrustacean/actix-web-lab.git", rev = "3a9ffda1de641fe40560fbdd231dca4544f4945c" }
+futures-util = "0.3"
 
 [dev-dependencies]
 reqwest = { version = "0.13", features = ["form", "multipart", "cookies"] }

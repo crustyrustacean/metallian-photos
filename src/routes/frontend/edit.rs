@@ -11,14 +11,16 @@
 // HTML attribute layer — the class of injection bug that raw format!()
 // strings are vulnerable to.
 
+use super::sse::patch_response;
 use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::domain::UpdatePhoto;
 use crate::template::TemplateRenderer;
 use crate::utils::e400;
 use actix_identity::Identity;
+use actix_web::Responder;
 use actix_web::web::{Data, Path};
-use datastar::actix::{ReadSignals, Sse};
+use datastar::actix::ReadSignals;
 use datastar::prelude::PatchElements;
 use uuid::Uuid;
 
@@ -52,7 +54,7 @@ pub async fn edit_photo(
     database: Data<dyn DatabaseBackend>,
     templates: Data<Box<dyn TemplateRenderer>>,
     identity: Option<Identity>,
-) -> Result<Sse, actix_web::Error> {
+) -> Result<impl Responder, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let photo = database.read(id).await?;
@@ -60,7 +62,7 @@ pub async fn edit_photo(
     let context = caption_context(id, &photo.band, &photo.tour, &photo.venue);
     let html = templates.render("partials/edit_form.html", &context)?;
 
-    Ok(PatchElements::new(html).into())
+    Ok(patch_response(PatchElements::new(html)))
 }
 
 /// PUT /gallery/{id}
@@ -77,7 +79,7 @@ pub async fn update_photo(
     database: Data<dyn DatabaseBackend>,
     templates: Data<Box<dyn TemplateRenderer>>,
     identity: Option<Identity>,
-) -> Result<Sse, actix_web::Error> {
+) -> Result<impl Responder, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
 
@@ -92,7 +94,7 @@ pub async fn update_photo(
     });
     let html = templates.render("partials/caption.html", &context)?;
 
-    Ok(PatchElements::new(html).into())
+    Ok(patch_response(PatchElements::new(html)))
 }
 
 /// GET /gallery/{id}/cancel
@@ -103,7 +105,7 @@ pub async fn cancel_edit(
     database: Data<dyn DatabaseBackend>,
     templates: Data<Box<dyn TemplateRenderer>>,
     identity: Option<Identity>,
-) -> Result<Sse, actix_web::Error> {
+) -> Result<impl Responder, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
     let photo = database.read(id).await?;
@@ -116,5 +118,5 @@ pub async fn cancel_edit(
     });
     let html = templates.render("partials/caption.html", &context)?;
 
-    Ok(PatchElements::new(html).into())
+    Ok(patch_response(PatchElements::new(html)))
 }

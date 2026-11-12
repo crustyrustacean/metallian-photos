@@ -1,13 +1,14 @@
 // src/routes/frontend/delete.rs
 
+use super::sse::patch_response;
 use crate::auth::require_login;
 use crate::database::DatabaseBackend;
 use crate::services::PhotoOperations;
 use crate::storage::StorageBackend;
 use crate::utils::e400;
 use actix_identity::Identity;
+use actix_web::Responder;
 use actix_web::web::{Data, Path};
-use datastar::actix::Sse;
 use datastar::prelude::PatchElements;
 use uuid::Uuid;
 
@@ -20,7 +21,7 @@ pub async fn delete_photo(
     storage: Data<dyn StorageBackend>,
     operations: Data<PhotoOperations>,
     identity: Option<Identity>,
-) -> Result<Sse, actix_web::Error> {
+) -> Result<impl Responder, actix_web::Error> {
     require_login(&identity)?;
     let id = Uuid::parse_str(&path.into_inner()).map_err(e400)?;
 
@@ -28,5 +29,7 @@ pub async fn delete_photo(
         .delete_photo(id, database.get_ref(), storage.get_ref())
         .await?;
 
-    Ok(PatchElements::new_remove(format!("#photo-{id}")).into())
+    Ok(patch_response(PatchElements::new_remove(format!(
+        "#photo-{id}"
+    ))))
 }
