@@ -1,6 +1,6 @@
 [package]
 name = "metallian-photos"
-version = "0.12.6"
+version = "0.12.7"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
@@ -20,17 +20,20 @@ actix-session = { version = "0.11", features = ["cookie-session"] }
 actix-files = "0.7"
 actix-multipart = { version = "0.8", features = ["tempfile"] }
 actix-web = { version = "4", default-features = false, features = ["cookies"] }
+actix-sse = "0.2"
 async-trait = "0.1"
 anyhow = "1"
 bytes = "1"
 config = { version = "0.15", default-features = false, features = ["yaml"] }
-datastar = { git = "https://github.com/crustyrustacean/datastar-rust.git", branch = "feat/actix-adapter", features = ["actix-web"] }
+datastar = { git = "https://github.com/crustyrustacean/datastar-rust.git", features = [
+    "actix-web",
+] }
 dotenvy = "0.15"
 heic = "0.1"
 image = { version = "0.25", default-features = false, features = ["jpeg"] }
 kamadak-exif = "0.6"
 opendal = { version = "0.59", features = ["services-s3", "services-fs"] }
-reqwest = { version = "0.13", features = [ "json" ] }
+reqwest = { version = "0.13", features = ["json"] }
 secrecy = { version = "0.10", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde-aux = "4"
@@ -44,7 +47,12 @@ sqlx = { version = "0.9", default-features = false, features = [
 ] }
 tera = { version = "2", features = ["fast", "glob_fs"] }
 thiserror = "2"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"] }
+tokio = { version = "1", features = [
+    "macros",
+    "rt-multi-thread",
+    "sync",
+    "time",
+] }
 tracing = "0.1"
 tracing-actix-web = "0.7"
 tracing-log = "0.2"

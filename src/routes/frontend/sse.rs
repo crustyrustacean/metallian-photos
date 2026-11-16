@@ -1,7 +1,7 @@
 // src/routes/frontend/sse.rs
 
+use actix_sse::{Event, Sse};
 use actix_web::Responder;
-use actix_web_lab::sse::{Event, Sse};
 use datastar::prelude::PatchElements;
 use futures_util::stream;
 

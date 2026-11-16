@@ -211,6 +211,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "actix-sse"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1693f898edec830df0960a3f05c479388de2f36262c5ffd37ffc2589620214af"
+dependencies = [
+ "actix-web",
+ "bytes",
+ "bytestring",
+ "futures-util",
+ "pin-project-lite",
+ "russe 0.3.1",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
 name = "actix-utils"
 version = "3.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -286,7 +302,7 @@ dependencies = [
  "mime",
  "pin-project-lite",
  "regex",
- "russe",
+ "russe 0.3.0",
  "serde",
  "serde_html_form",
  "serde_json",
@@ -985,10 +1001,10 @@ dependencies = [
 [[package]]
 name = "datastar"
 version = "0.4.1"
-source = "git+https://github.com/crustyrustacean/datastar-rust.git?branch=feat%2Factix-adapter#a95b568eefa8d78eaf7dd72732569739b2d3175c"
+source = "git+https://github.com/crustyrustacean/datastar-rust.git#23c262167e9cb023a94fd5fd0ccf1ba5572342a2"
 dependencies = [
+ "actix-sse",
  "actix-web",
- "actix-web-lab",
  "serde",
  "serde_json",
 ]
@@ -2130,13 +2146,14 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "metallian-photos"
-version = "0.12.6"
+version = "0.12.7"
 dependencies = [
  "actix-cors",
  "actix-files",
  "actix-identity",
  "actix-multipart",
  "actix-session",
+ "actix-sse",
  "actix-web",
  "actix-web-lab",
  "anyhow",
@@ -2917,6 +2934,24 @@ dependencies = [
  "bytestring",
  "futures-util",
  "impl-more",
+ "memchr",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "russe"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56b278184c4cf1f499ad5020876c9d31961b6166526fc7415ad11f113166f91b"
+dependencies = [
+ "aho-corasick",
+ "bytes",
+ "bytestring",
+ "futures-util",
+ "impl-more",
+ "itoa",
  "memchr",
  "tokio",
  "tokio-util",
