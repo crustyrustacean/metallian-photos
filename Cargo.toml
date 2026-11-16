@@ -1,6 +1,6 @@
 [package]
 name = "metallian-photos"
-version = "0.12.5"
+version = "0.12.6"
 edition = "2024"
 authors = ["Jeffery D. Mitchell", "<crusty.rustacean@gmail.com>"]
 description = "A photo management API using Actix Web, SQLite, and Cloudflare R2"
@@ -23,14 +23,12 @@ actix-web = { version = "4", default-features = false, features = ["cookies"] }
 async-trait = "0.1"
 anyhow = "1"
 bytes = "1"
-datastar = { git = "https://github.com/crustyrustacean/datastar-rust.git", branch = "feat/actix-adapter", features = ["actix"] }
-dotenvy = "0.15"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
 config = { version = "0.15", default-features = false, features = ["yaml"] }
+datastar = { git = "https://github.com/crustyrustacean/datastar-rust.git", branch = "feat/actix-adapter", features = ["actix-web"] }
+dotenvy = "0.15"
 heic = "0.1"
 image = { version = "0.25", default-features = false, features = ["jpeg"] }
 kamadak-exif = "0.6"
-log = "0.4"
 opendal = { version = "0.59", features = ["services-s3", "services-fs"] }
 reqwest = { version = "0.13", features = [ "json" ] }
 secrecy = { version = "0.10", features = ["serde"] }
@@ -42,7 +40,6 @@ sqlx = { version = "0.9", default-features = false, features = [
     "sqlite",
     "macros",
     "uuid",
-    "chrono",
     "migrate",
 ] }
 tera = { version = "2", features = ["fast", "glob_fs"] }

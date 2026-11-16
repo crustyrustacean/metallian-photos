@@ -20,7 +20,7 @@ use crate::utils::e400;
 use actix_identity::Identity;
 use actix_web::Responder;
 use actix_web::web::{Data, Path};
-use datastar::actix::ReadSignals;
+use datastar::actix_web::ReadSignals;
 use datastar::prelude::PatchElements;
 use uuid::Uuid;
 
